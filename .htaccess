@@ -1,0 +1,15 @@
+RewriteEngine On
+
+# Redirigir todas las solicitudes al index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+# Proteger archivos sensibles
+<Files ~ "\.(env|json|config.js|md|gitignore|gitattributes|lock)$">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Proteger directorios sensibles
+RewriteRule ^(app|config|library|model|vendor) - [F,L]
