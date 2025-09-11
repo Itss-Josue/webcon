@@ -1,50 +1,76 @@
 <?php
-// index.php
 session_start();
 
-// Definir constante para verificar si el archivo actual es login.php
-define('CURRENT_PAGE', basename($_SERVER['PHP_SELF']));
+// 1. Conexión a la BD
+$host = "127.0.0.1";
+$dbname = "webcon";
+$user = "root";
+$pass = "";
 
-// Incluir configuración
-require_once 'config/database.php';
-
-// Verificar autenticación SOLO si no estamos en la página de login
-if (!isset($_SESSION['usuario_id']) && CURRENT_PAGE != 'login.php') {
-    header('Location: login.php');
-    exit();
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("❌ Error de conexión: " . $e->getMessage());
 }
 
-// Si ya está autenticado y trata de acceder a login.php, redirigir al dashboard
-if (isset($_SESSION['usuario_id']) && CURRENT_PAGE == 'login.php') {
-    header('Location: index.php?controller=Admin&action=dashboard');
-    exit();
+// 2. Definir ruta
+$route = $_GET['route'] ?? 'admin:loginForm';
+list($controllerName, $action) = explode(':', $route);
+
+// 3. Cargar controlador según ruta
+switch ($controllerName) {
+    case 'admin':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $controller = new AdminController($pdo);
+        break;
+
+    case 'cliente':
+        require_once __DIR__ . '/app/controllers/ClienteController.php';
+        $controller = new ClienteController($pdo);
+        break;
+
+    case 'pago':
+        require_once __DIR__ . '/app/controllers/PagoController.php';
+        $controller = new PagoController($pdo);
+        break;
+
+    case 'proyecto':
+        require_once __DIR__ . '/app/controllers/ProyectoController.php';
+        $controller = new ProyectoController($pdo);
+        break;
+
+    default:
+        die("❌ Controlador '$controllerName' no encontrado");
 }
 
-// Cargar controladores
-require_once 'control/AdminController.php';
-require_once 'control/ProjectController.php';
-require_once 'control/ClientController.php';
-require_once 'control/PaymentController.php';
-require_once 'control/ReportController.php';
-require_once 'control/SettingsController.php';
+// 4. Verificar acción
+if (!method_exists($controller, $action)) {
+    die("⚠️ Acción '$action' no encontrada en " . get_class($controller));
+}
 
-// Manejar rutas
-$action = isset($_GET['action']) ? $_GET['action'] : 'dashboard';
-$controller = isset($_GET['controller']) ? $_GET['controller'] : 'Admin';
-
-// Ejecutar controlador y acción correspondiente
-$controllerName = $controller . 'Controller';
-if (class_exists($controllerName)) {
-    $controllerInstance = new $controllerName();
-    if (method_exists($controllerInstance, $action)) {
-        $controllerInstance->$action();
+// 5. Ejecutar acción
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($controllerName === 'proyecto' && $action === 'edit') {
+        // Para proyectos edit (update) pasamos id y datos del POST
+        if (!isset($_GET['id'])) die("❌ ID no especificado para actualizar proyecto");
+        $controller->$action($_GET['id'], $_POST);
     } else {
-        // Página no encontrada
-        header("HTTP/1.0 404 Not Found");
-        include 'view/404.php';
+        $controller->$action($_POST);
     }
 } else {
-    // Página no encontrada
-    header("HTTP/1.0 404 Not Found");
-    include 'view/404.php';
+    // Para GET, verificamos si la acción requiere parámetros
+    $reflection = new ReflectionMethod($controller, $action);
+    $numParams = $reflection->getNumberOfParameters();
+
+    if ($numParams === 1 && isset($_GET['id'])) {
+        // Acción espera 1 parámetro, se lo pasamos desde ?id=...
+        $controller->$action($_GET['id']);
+    } elseif ($numParams === 2 && isset($_GET['id'])) {
+        // Acción espera 2 parámetros (por ejemplo $id y $data)
+        $controller->$action($_GET['id'], $_GET);
+    } else {
+        // Acción sin parámetros
+        $controller->$action();
+    }
 }

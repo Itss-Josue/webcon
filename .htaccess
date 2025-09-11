@@ -1,15 +1,12 @@
-RewriteEngine On
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /webcon/
 
-# Redirigir todas las solicitudes al index.php
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+    # Redirigir la raíz "/" al login
+    RewriteRule ^$ auth/login [L,R=302]
 
-# Proteger archivos sensibles
-<Files ~ "\.(env|json|config.js|md|gitignore|gitattributes|lock)$">
-    Order allow,deny
-    Deny from all
-</Files>
-
-# Proteger directorios sensibles
-RewriteRule ^(app|config|library|model|vendor) - [F,L]
+    # Si no existe archivo o carpeta, redirigir a index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.+)$ index.php?url=$1 [QSA,L]
+</IfModule>
