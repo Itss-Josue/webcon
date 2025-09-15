@@ -1,28 +1,43 @@
 <?php
-session_start();
-require_once 'Database.php'; // Asegúrate de la ruta correcta
+class Database {
+    private $host = "127.0.0.1";
+    private $port;
+    private $db_name = "webcon";
+    private $username;
+    private $password;
+    private $conn;
 
-$db = new Database();
-$conn = $db->getConnection();
+    public function __construct() {
+        // Detectar si es MAMP (por puerto 8889) o XAMPP (3306)
+        if (str_contains(__DIR__, "MAMP")) {
+            $this->port = 8889;
+            $this->username = "root";
+            $this->password = "root";
+        } else {
+            $this->port = 3306;
+            $this->username = "root";
+            $this->password = "";
+        }
+    }
 
-// --- Traer clientes ---
-$stmt = $conn->query("SELECT * FROM clientes");
-$clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    public function getConnection() {
+        if ($this->conn === null) {
+            try {
+                $this->conn = new PDO(
+                    "mysql:host={$this->host};port={$this->port};dbname={$this->db_name};charset=utf8mb4",
+                    $this->username,
+                    $this->password
+                );
+                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            } catch (PDOException $e) {
+                die("❌ Error de conexión: " . $e->getMessage() . 
+                    "<br>Host={$this->host}, Puerto={$this->port}, Usuario={$this->username}");
+            }
+        }
+        return $this->conn;
+    }
 
-// --- Traer proyectos con nombre de cliente ---
-$stmt = $conn->query("
-    SELECT p.*, c.name AS client_name 
-    FROM proyectos p
-    LEFT JOIN clientes c ON p.client_id = c.id
-");
-$proyectos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// --- Traer pagos con nombre de cliente y proyecto ---
-$stmt = $conn->query("
-    SELECT pay.*, c.name AS client_name, p.name AS project_name 
-    FROM pagos pay
-    LEFT JOIN clientes c ON pay.client_id = c.id
-    LEFT JOIN proyectos p ON pay.project_id = p.id
-");
-$pagos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-?>
+    public function closeConnection() {
+        $this->conn = null;
+    }
+}

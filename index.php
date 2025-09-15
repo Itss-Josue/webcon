@@ -1,24 +1,16 @@
 <?php
 session_start();
+require_once __DIR__ . '/config/database.php';
 
-// 1. Conexión a la BD
-$host = "127.0.0.1";
-$dbname = "webcon";
-$user = "root";
-$pass = "";
+// ✅ Conexión
+$db = new Database();
+$pdo = $db->getConnection();
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("❌ Error de conexión: " . $e->getMessage());
-}
-
-// 2. Definir ruta
-$route = $_GET['route'] ?? 'admin:loginForm';
+// 1️⃣ Definir ruta
+$route = $_GET['route'] ?? 'admin:login';
 list($controllerName, $action) = explode(':', $route);
 
-// 3. Cargar controlador según ruta
+// 2️⃣ Cargar controlador
 switch ($controllerName) {
     case 'admin':
         require_once __DIR__ . '/app/controllers/AdminController.php';
@@ -40,37 +32,45 @@ switch ($controllerName) {
         $controller = new ProyectoController($pdo);
         break;
 
+    case 'auth':
+        require_once __DIR__ . '/app/controllers/AuthController.php';
+        $controller = new AuthController($pdo);
+        break;
+
     default:
         die("❌ Controlador '$controllerName' no encontrado");
 }
 
-// 4. Verificar acción
+// 3️⃣ Ejecutar acción de forma dinámica
 if (!method_exists($controller, $action)) {
     die("⚠️ Acción '$action' no encontrada en " . get_class($controller));
 }
 
-// 5. Ejecutar acción
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($controllerName === 'proyecto' && $action === 'edit') {
-        // Para proyectos edit (update) pasamos id y datos del POST
-        if (!isset($_GET['id'])) die("❌ ID no especificado para actualizar proyecto");
-        $controller->$action($_GET['id'], $_POST);
-    } else {
-        $controller->$action($_POST);
-    }
-} else {
-    // Para GET, verificamos si la acción requiere parámetros
-    $reflection = new ReflectionMethod($controller, $action);
-    $numParams = $reflection->getNumberOfParameters();
+// 4️⃣ Manejar GET y POST con parámetros opcionales
+$reflection = new ReflectionMethod($controller, $action);
+$numParams = $reflection->getNumberOfParameters();
 
-    if ($numParams === 1 && isset($_GET['id'])) {
-        // Acción espera 1 parámetro, se lo pasamos desde ?id=...
-        $controller->$action($_GET['id']);
-    } elseif ($numParams === 2 && isset($_GET['id'])) {
-        // Acción espera 2 parámetros (por ejemplo $id y $data)
-        $controller->$action($_GET['id'], $_GET);
+$params = [];
+
+// Si la acción espera 1 parámetro, buscar id en GET
+if ($numParams === 1) {
+    if (isset($_GET['id'])) {
+        $params[] = $_GET['id'];
     } else {
-        // Acción sin parámetros
-        $controller->$action();
+        // Para POST que pasa un array
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $params[] = $_POST;
+        } else {
+            $params[] = null; // Se puede validar dentro del método
+        }
     }
 }
+
+// Si la acción espera 2 parámetros
+if ($numParams === 2) {
+    if (isset($_GET['id'])) $params[] = $_GET['id'];
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') $params[] = $_POST;
+}
+
+// 5️⃣ Llamar a la acción con parámetros dinámicos
+$controller->$action(...$params);

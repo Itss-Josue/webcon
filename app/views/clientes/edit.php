@@ -213,7 +213,7 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-users"></i> Editar Cliente</h1>
-            <a href="/webcon/index.php?route=admin:clientes" class="back-button">
+            <a href="index.php?route=admin:dashboard#clientes" class="back-button">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
@@ -265,9 +265,9 @@
                 </div>
                 
                 <div class="form-actions">
-                    <a href="/webcon/index.php?route=admin:clientes" class="btn btn-cancel">
-                        <i class="fas fa-times"></i> Cancelar
-                    </a>
+                    <a href="index.php?route=admin:dashboard#clientes" class="back-button">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Actualizar Cliente
                     </button>
