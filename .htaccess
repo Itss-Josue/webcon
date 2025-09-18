@@ -1,9 +1,12 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # 🔹 Ajusta la ruta base según la carpeta de tu proyecto en el hosting
+    # Si tu sistema está en public_html/webcon/ usa esta:
     RewriteBase /webcon/
 
     # Redirigir la raíz "/" al login
-    RewriteRule ^$ auth/login [L,R=302]
+    RewriteRule ^$ index.php?url=auth/login [L,QSA]
 
     # Si no existe archivo o carpeta, redirigir a index.php
     RewriteCond %{REQUEST_FILENAME} !-f
