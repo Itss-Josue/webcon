@@ -1,5 +1,8 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # 🔹 Ajusta la ruta base según la carpeta de tu proyecto en el hosting
+    # Si tu sistema está en public_html/webcon/ usa esta:
     RewriteBase /webcon/
 
     # Redirigir la raíz "/" al login de admin

@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/config/config.php'; // 🔹 cambiado
 
 // ✅ Conexión
 $db = new Database();
@@ -58,16 +58,15 @@ $numParams = $reflection->getNumberOfParameters();
 
 $params = [];
 
-// Si la acción espera 1 parámetro, buscar id en GET
+// Si la acción espera 1 parámetro
 if ($numParams === 1) {
     if (isset($_GET['id'])) {
         $params[] = $_GET['id'];
     } else {
-        // Para POST que pasa un array
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $params[] = $_POST;
         } else {
-            $params[] = null; // Se puede validar dentro del método
+            $params[] = null;
         }
     }
 }

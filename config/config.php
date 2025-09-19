@@ -3,7 +3,7 @@ class Database {
     private $host = "localhost"; // en cPanel normalmente es localhost
     private $db_name = "webcon"; 
     private $username = "root"; 
-    private $password = "root"; 
+    private $password = ""; 
     private $conn;
 
     public function getConnection() {
