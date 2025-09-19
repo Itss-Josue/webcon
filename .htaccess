@@ -2,11 +2,11 @@
     RewriteEngine On
     RewriteBase /webcon/
 
-    # Redirigir la raíz "/" al login
-    RewriteRule ^$ auth/login [L,R=302]
+    # Redirigir la raíz "/" al login de admin
+    RewriteRule ^$ index.php?route=admin:login [L,QSA]
 
-    # Si no existe archivo o carpeta, redirigir a index.php
+    # Todas las demás rutas van a index.php manteniendo "route"
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.+)$ index.php?url=$1 [QSA,L]
+    RewriteRule ^ index.php [L,QSA]
 </IfModule>

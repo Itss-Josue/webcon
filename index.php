@@ -37,6 +37,12 @@ switch ($controllerName) {
         $controller = new AuthController($pdo);
         break;
 
+    // ✅ Nuevo módulo API CLIENTES
+    case 'apicliente':
+        require_once __DIR__ . '/app/controllers/ApiClienteController.php';
+        $controller = new ApiClienteController($pdo);
+        break;
+
     default:
         die("❌ Controlador '$controllerName' no encontrado");
 }

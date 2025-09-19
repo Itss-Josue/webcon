@@ -854,6 +854,16 @@ $pagos     = $pagos ?? [];
                     <i class="fas fa-credit-card"></i> Pagos
                 </a>
             </li>
+            <li class="nav-item">
+    <a href="/webcon/index.php?route=apicliente:index" class="nav-link">
+        <i class="fas fa-key"></i> API Clientes
+    </a>
+</li>
+
+
+            </a>
+</li>
+
         </ul>
     </div>
 
