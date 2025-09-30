@@ -8,45 +8,46 @@ class ApiClienteController {
         $this->model = new ApiCliente($db);
     }
 
-    // 📌 Listado de clientes
+    // 📌 Listado
     public function index() {
         $clientes = $this->model->getAll();
         require __DIR__ . '/../views/apicliente/index.php';
     }
 
-    // 📌 Ver cliente
+    // 📌 Ver detalle
     public function view($id) {
         $cliente = $this->model->getById($id);
         require __DIR__ . '/../views/apicliente/view.php';
     }
 
-    // 📌 Crear cliente
+    // 📌 Crear
     public function create() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->model->create($_POST);
-            header("Location: index.php?route=apicliente:index");
+            // 🔹 Redirigimos con status=created
+            header("Location: index.php?route=apicliente:index&status=created");
             exit;
-        } else {
-            require __DIR__ . '/../views/apicliente/create.php';
         }
+        require __DIR__ . '/../views/apicliente/create.php';
     }
 
-    // 📌 Editar cliente
+    // 📌 Editar
     public function edit($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->model->update($id, $_POST);
-            header("Location: index.php?route=apicliente:index");
+            // 🔹 Redirigimos con status=updated
+            header("Location: index.php?route=apicliente:index&status=updated");
             exit;
-        } else {
-            $cliente = $this->model->getById($id);
-            require __DIR__ . '/../views/apicliente/edit.php';
         }
+        $cliente = $this->model->getById($id);
+        require __DIR__ . '/../views/apicliente/edit.php';
     }
 
-    // 📌 Eliminar cliente
+    // 📌 Eliminar
     public function delete($id) {
         $this->model->delete($id);
-        header("Location: index.php?route=apicliente:index");
+        // 🔹 Redirigimos con status=deleted
+        header("Location: index.php?route=apicliente:index&status=deleted");
         exit;
     }
 }

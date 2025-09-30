@@ -828,44 +828,50 @@ $pagos     = $pagos ?? [];
 <body>
 <div class="admin-container">
     <!-- SIDEBAR -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
-            <p>WebDev Solutions</p>
-        </div>
-        <ul class="nav-menu">
-            <li class="nav-item">
-                <a href="#" class="nav-link active" data-section="dashboard">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-section="clientes">
-                    <i class="fas fa-users"></i> Clientes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-section="proyectos">
-                    <i class="fas fa-project-diagram"></i> Proyectos
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-section="pagos">
-                    <i class="fas fa-credit-card"></i> Pagos
-                </a>
-            </li>
-            <li class="nav-item">
-    <a href="/webcon/index.php?route=apicliente:index" class="nav-link">
-        <i class="fas fa-key"></i> API Clientes
-    </a>
-</li>
-
-
-            </a>
-</li>
-
-        </ul>
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
+        <p>WebDev Solutions</p>
     </div>
+    <ul class="nav-menu">
+        <li class="nav-item">
+            <a href="#" class="nav-link active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-section="clientes">
+                <i class="fas fa-users"></i> Clientes
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-section="proyectos">
+                <i class="fas fa-project-diagram"></i> Proyectos
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-section="pagos">
+                <i class="fas fa-credit-card"></i> Pagos
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="http://localhost:8888/webcon/index.php?route=apicliente:index" class="btn btn-primary">
+                📑 Gestionar Clientes
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="http://localhost:8888/webcon/index.php?route=apitoken:index" class="btn btn-success">
+                🔑 Gestionar Tokens
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="http://localhost:8888/webcon/index.php?route=countrequest:index" class="btn btn-warning">
+                📊 Count Request
+            </a>
+        </li>
+    </ul>
+</div>
+
 
     <!-- MAIN CONTENT -->
     <div class="main-content">
@@ -1102,39 +1108,57 @@ $pagos     = $pagos ?? [];
                             </tr>
                         </thead>
                         <tbody>
-    <?php if(is_countable($pagos) && count($pagos) > 0): ?>
-        <?php foreach ($pagos as $pago): ?>
-        <tr>
-            <td><?= $pago['id'] ?? '-' ?></td>
-            <td><?= htmlspecialchars($pago['client_name'] ?? '-') ?></td>
-            <td><?= htmlspecialchars($pago['project_name'] ?? '-') ?></td>
-            <td>S/. <?= isset($pago['amount']) ? number_format($pago['amount'], 2) : '0.00' ?></td>
-            <td>
-                <?= !empty($pago['payment_date']) ? date('d/m/Y', strtotime($pago['payment_date'])) : '-' ?>
-            </td>
-            <td>
-                <?php 
-                    $status = $pago['status'] ?? 'pendiente';
-                    $statusClass = $status === 'pagado' ? 'status-completed' : 'status-pending';
-                ?>
-                <span class="status-badge <?= $statusClass ?>"><?= ucfirst($status) ?></span>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <a href="/webcon/index.php?route=pago:editForm&id=<?= $pago['id'] ?? 0 ?>" class="btn btn-edit">
-                        <i class="fas fa-edit"></i> Editar
-                    </a>
-                    <a href="/webcon/index.php?route=pago:delete&id=<?= $pago['id'] ?? 0 ?>" class="btn btn-delete" onclick="return confirm('¿Desea eliminar este pago?');">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </a>
+                            <?php if(is_countable($pagos) && count($pagos) > 0): ?>
+                                <?php foreach ($pagos as $pago): ?>
+                                <tr>
+                                    <td><?= $pago['id'] ?? '-' ?></td>
+                                    <td><?= htmlspecialchars($pago['client_name'] ?? '-') ?></td>
+                                    <td><?= htmlspecialchars($pago['project_name'] ?? '-') ?></td>
+                                    <td>S/. <?= isset($pago['amount']) ? number_format($pago['amount'], 2) : '0.00' ?></td>
+                                    <td>
+                                        <?= !empty($pago['payment_date']) ? date('d/m/Y', strtotime($pago['payment_date'])) : '-' ?>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                            $status = $pago['status'] ?? 'pendiente';
+                                            $statusClass = $status === 'pagado' ? 'status-completed' : 'status-pending';
+                                        ?>
+                                        <span class="status-badge <?= $statusClass ?>"><?= ucfirst($status) ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="/webcon/index.php?route=pago:editForm&id=<?= $pago['id'] ?? 0 ?>" class="btn btn-edit">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </a>
+                                            <a href="/webcon/index.php?route=pago:delete&id=<?= $pago['id'] ?? 0 ?>" class="btn btn-delete" onclick="return confirm('¿Desea eliminar este pago?');">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr><td colspan="7" style="text-align:center;">No hay pagos registrados</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <tr><td colspan="7" style="text-align:center;">No hay pagos registrados</td></tr>
-    <?php endif; ?>
-</tbody>
+            </div>
+
+            <!-- API CLIENTES SECTION -->
+            <div class="content-section" id="apicliente">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3><i class="fas fa-key"></i> Gestión de API Clientes</h3>
+                    </div>
+                    <?php include __DIR__ . '/../apicliente/index.php'; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
 
                     </table>
                 </div>
@@ -1144,41 +1168,59 @@ $pagos     = $pagos ?? [];
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
     // --- Cambiar secciones ---
-    const navLinks = document.querySelectorAll('.nav-link');
-    const sections = document.querySelectorAll('.content-section');
-    const pageTitle = document.getElementById('pageTitle');
+    const navLinks = document.querySelectorAll(".nav-link");
+    const sections = document.querySelectorAll(".content-section");
+    const pageTitle = document.getElementById("pageTitle");
 
-    navLinks.forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
+    if (navLinks.length && sections.length && pageTitle) {
+        navLinks.forEach(link => {
+            link.addEventListener("click", e => {
+                e.preventDefault();
 
-            const sectionId = link.getAttribute('data-section');
-            sections.forEach(sec => sec.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-            pageTitle.textContent = link.textContent.trim();
+                // Quitar "active" de todos los links
+                navLinks.forEach(l => l.classList.remove("active"));
+                link.classList.add("active");
+
+                // Mostrar la sección correspondiente
+                const sectionId = link.getAttribute("data-section");
+                if (sectionId) {
+                    sections.forEach(sec => sec.classList.remove("active"));
+                    const targetSection = document.getElementById(sectionId);
+                    if (targetSection) {
+                        targetSection.classList.add("active");
+                    }
+                }
+
+                // Cambiar título de página
+                pageTitle.textContent = link.textContent.trim();
+            });
         });
-    });
+    }
 
     // --- Función de búsqueda en tablas ---
-    function filtrarTabla(input, tableId) {
+    window.filtrarTabla = function (input, tableId) {
         const filter = input.value.toUpperCase();
         const table = document.getElementById(tableId);
-        const tr = table.getElementsByTagName('tr');
+
+        if (!table) return;
+
+        const tr = table.getElementsByTagName("tr");
         for (let i = 1; i < tr.length; i++) {
-            let tdArray = tr[i].getElementsByTagName('td');
+            let tdArray = tr[i].getElementsByTagName("td");
             let mostrar = false;
             for (let j = 0; j < tdArray.length; j++) {
-                if (tdArray[j] && tdArray[j].textContent.toUpperCase().indexOf(filter) > -1) {
+                if (tdArray[j] && tdArray[j].textContent.toUpperCase().includes(filter)) {
                     mostrar = true;
                     break;
                 }
             }
             tr[i].style.display = mostrar ? "" : "none";
         }
-    }
+    };
+});
 </script>
+
 </body>
 </html>

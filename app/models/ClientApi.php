@@ -1,6 +1,6 @@
 <?php
 class ApiCliente {
-    private $db;
+    public $db; // 🔹 pública para acceso controlado en vistas si fuera necesario
 
     public function __construct($db) {
         $this->db = $db;
@@ -25,8 +25,8 @@ class ApiCliente {
         return $stmt->execute([
             $data['ruc'],
             $data['razon_social'],
-            $data['telefono'],
-            $data['correo'],
+            $data['telefono'] ?? null,
+            $data['correo'] ?? null,
             $data['fecha_registro'] ?? date('Y-m-d'),
             $data['estado'] ?? 1
         ]);
@@ -41,10 +41,10 @@ class ApiCliente {
         return $stmt->execute([
             $data['ruc'],
             $data['razon_social'],
-            $data['telefono'],
-            $data['correo'],
-            $data['fecha_registro'],
-            $data['estado'],
+            $data['telefono'] ?? null,
+            $data['correo'] ?? null,
+            $data['fecha_registro'] ?? date('Y-m-d'),
+            $data['estado'] ?? 1,
             $id
         ]);
     }

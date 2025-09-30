@@ -1,15 +1,14 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    
-    # 🔹 Ajusta la ruta base según la carpeta de tu proyecto en el hosting
-    # Si tu sistema está en public_html/webcon/ usa esta:
+
+    # Ajusta la ruta base según tu carpeta
     RewriteBase /webcon/
 
-    # Redirigir la raíz "/" al login de admin
+    # Si alguien entra al raíz → admin login
     RewriteRule ^$ index.php?route=admin:login [L,QSA]
 
-    # Todas las demás rutas van a index.php manteniendo "route"
+    # Rutas tipo /controller/action/123 → index.php?route=controller:action&id=123
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ index.php [L,QSA]
+    RewriteRule ^([^/]+)/?([^/]*)/?([^/]*)/?$ index.php?route=$1:$2&id=$3 [L,QSA]
 </IfModule>
