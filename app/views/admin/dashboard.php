@@ -827,7 +827,7 @@ $pagos     = $pagos ?? [];
 </head>
 <body>
 <div class="admin-container">
-    <!-- SIDEBAR -->
+   <!-- SIDEBAR -->
 <div class="sidebar">
     <div class="sidebar-header">
         <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
@@ -854,19 +854,20 @@ $pagos     = $pagos ?? [];
                 <i class="fas fa-credit-card"></i> Pagos
             </a>
         </li>
+        <!-- NUEVOS MENÚS PARA API -->
         <li class="nav-item">
-            <a href="http://localhost:8888/webcon/index.php?route=apicliente:index" class="btn btn-primary">
-                📑 Gestionar Clientes
+            <a href="#" class="nav-link" data-section="apicliente">
+                <i class="fas fa-code"></i> API Clientes
             </a>
         </li>
         <li class="nav-item">
-            <a href="http://localhost:8888/webcon/index.php?route=apitoken:index" class="btn btn-success">
-                🔑 Gestionar Tokens
+            <a href="#" class="nav-link" data-section="apitoken">
+                <i class="fas fa-key"></i> API Tokens
             </a>
         </li>
         <li class="nav-item">
-            <a href="http://localhost:8888/webcon/index.php?route=countrequest:index" class="btn btn-warning">
-                📊 Count Request
+            <a href="#" class="nav-link" data-section="countrequest">
+                <i class="fas fa-chart-bar"></i> API Requests
             </a>
         </li>
     </ul>
@@ -1145,27 +1146,311 @@ $pagos     = $pagos ?? [];
                 </div>
             </div>
 
-            <!-- API CLIENTES SECTION -->
-            <div class="content-section" id="apicliente">
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3><i class="fas fa-key"></i> Gestión de API Clientes</h3>
+          <!-- API CLIENTES SECTION -->
+<div class="content-section" id="apicliente">
+    <div class="table-container">
+        <div class="table-header">
+            <h3><i class="fas fa-plug"></i> Gestión de API Clientes</h3>
+            <a href="/webcon/index.php?route=api-cliente:createForm" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Agregar Cliente API
+            </a>
+        </div>
+
+        <!-- DEBUG MEJORADO -->
+        <div style="background: #e3f2fd; border: 1px solid #90caf9; padding: 15px; margin: 15px 0; border-radius: 5px;">
+            <h4 style="margin: 0 0 10px 0; color: #1565c0;">🔍 INFORMACIÓN DE DATOS</h4>
+            <p style="margin: 5px 0;"><strong>Estado:</strong> 
+                <?php 
+                if (!isset($apiClientes)) {
+                    echo '<span style="color: red;">❌ Variable $apiClientes NO está definida</span>';
+                } else if (!is_array($apiClientes)) {
+                    echo '<span style="color: red;">❌ Variable $apiClientes no es un array. Tipo: ' . gettype($apiClientes) . '</span>';
+                } else if (count($apiClientes) === 0) {
+                    echo '<span style="color: orange;">⚠️  Array vacío (0 registros en la base de datos)</span>';
+                } else {
+                    echo '<span style="color: green;">✅ ' . count($apiClientes) . ' registro(s) encontrado(s) en la base de datos</span>';
+                }
+                ?>
+            </p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" placeholder="Buscar cliente por RUC, razón social, teléfono..." onkeyup="filtrarTabla(this, 'apiClientesTable')">
+            </div>
+        </div>
+
+        <table id="apiClientesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>RUC</th>
+                    <th>Razón Social</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Fecha Registro</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if(isset($apiClientes) && is_array($apiClientes) && count($apiClientes) > 0): ?>
+                    <?php foreach ($apiClientes as $cliente): ?>
+                    <tr>
+                        <td><?= $cliente['id'] ?? '-' ?></td>
+                        <td><?= htmlspecialchars($cliente['ruc'] ?? '-') ?></td>
+                        <td><?= htmlspecialchars($cliente['razon_social'] ?? '-') ?></td>
+                        <td><?= htmlspecialchars($cliente['telefono'] ?? '-') ?></td>
+                        <td><?= htmlspecialchars($cliente['correo'] ?? '-') ?></td>
+                        <td>
+                            <?= !empty($cliente['fecha_registro']) ? date('d/m/Y', strtotime($cliente['fecha_registro'])) : '-' ?>
+                        </td>
+                        <td>
+                            <?php 
+                                $estado = $cliente['estado'] ?? 1;
+                                $statusClass = $estado == 1 ? 'status-completed' : 'status-pending';
+                                $statusText = $estado == 1 ? 'Activo' : 'Inactivo';
+                            ?>
+                            <span class="status-badge <?= $statusClass ?>"><?= $statusText ?></span>
+                        </td>
+                        <td>
+                            <!-- En la sección API Clientes del dashboard.php -->
+<div class="action-buttons">
+    <a href="/webcon/index.php?route=api-cliente:editForm&id=<?= $cliente['id'] ?>" class="btn btn-edit">
+        <i class="fas fa-edit"></i> Editar
+    </a>
+    <a href="/webcon/index.php?route=api-cliente:delete&id=<?= $cliente['id'] ?>" class="btn btn-delete" onclick="return confirm('¿Desea eliminar este cliente API?');">
+        <i class="fas fa-trash"></i> Eliminar
+    </a>
+</div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding: 30px; color: #666;">
+                            <i class="fas fa-database" style="font-size: 48px; margin-bottom: 10px; opacity: 0.5;"></i>
+                            <p>No hay clientes API registrados</p>
+                            <a href="/webcon/index.php?route=api-cliente:createForm" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Agregar Cliente API
+</a>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- API TOKENS SECTION -->
+<div class="content-section" id="apitoken">
+    <div class="table-container">
+        <div class="table-header">
+            <h3><i class="fas fa-key"></i> Gestión de API Tokens</h3>
+            <a href="/webcon/index.php?route=apitoken:createForm" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Token
+            </a>
+        </div>
+
+        <!-- Mostrar mensajes flash -->
+        <?php if (isset($_SESSION['flash'])): ?>
+            <div class="flash-message flash-success">
+                <i class="fas fa-check-circle"></i> <?= $_SESSION['flash'] ?>
+            </div>
+            <?php unset($_SESSION['flash']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="flash-message flash-error">
+                <i class="fas fa-exclamation-circle"></i> <?= $_SESSION['error'] ?>
+            </div>
+            <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" placeholder="Buscar token por cliente, token..." onkeyup="filtrarTabla(this, 'apitokensTable')">
+            </div>
+        </div>
+
+        <table id="apitokensTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente API</th>
+                    <th>Token</th>
+                    <th>Fecha Registro</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                // Asegurar que la variable existe y es un array
+                $apiTokens = isset($apiTokens) ? $apiTokens : [];
+                ?>
+                <?php if(is_countable($apiTokens) && count($apiTokens) > 0): ?>
+                    <?php foreach ($apiTokens as $at): ?>
+                    <tr>
+                        <td><?= $at['id'] ?? '' ?></td>
+                        <td><?= htmlspecialchars($at['razon_social'] ?? 'N/A') ?></td>
+                        <td>
+                            <div class="token-preview" title="<?= htmlspecialchars($at['token'] ?? '') ?>">
+                                <?= htmlspecialchars(substr($at['token'] ?? '', 0, 20)) ?>...
+                            </div>
+                        </td>
+                        <td><?= !empty($at['fecha_registro']) ? date('d/m/Y', strtotime($at['fecha_registro'])) : 'N/A' ?></td>
+                        <td>
+                            <span class="status-badge <?= ($at['estado'] ?? 0) ? 'status-completed' : 'status-pending' ?>">
+                                <?= ($at['estado'] ?? 0) ? 'Activo' : 'Inactivo' ?>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="/webcon/index.php?route=apitoken:editForm&id=<?= $at['id'] ?? '' ?>" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <a href="/webcon/index.php?route=apitoken:regenerateToken&id=<?= $at['id'] ?? '' ?>" class="btn btn-primary btn-sm"
+                                   onclick="return confirm('¿Estás seguro de regenerar el token? El anterior dejará de funcionar.')">
+                                    <i class="fas fa-key"></i> Regenerar
+                                </a>
+                                <a href="/webcon/index.php?route=apitoken:delete&id=<?= $at['id'] ?? '' ?>" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('¿Estás seguro de eliminar este token?')">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="6" style="text-align:center; color: #7f8c8d; padding: 30px;">
+                            <i class="fas fa-key" style="font-size: 48px; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
+                            No hay API tokens registrados
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- COUNT REQUEST SECTION -->
+<div class="content-section" id="countrequest">
+    <div class="table-container">
+        <div class="table-header">
+            <h3><i class="fas fa-chart-bar"></i> Registros de API Requests</h3>
+            <a href="/webcon/index.php?route=countrequest:createForm" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Registro
+            </a>
+        </div>
+
+        <!-- Mostrar mensajes flash -->
+        <?php if (isset($_SESSION['flash'])): ?>
+            <div class="flash-message flash-success">
+                <i class="fas fa-check-circle"></i> <?= $_SESSION['flash'] ?>
+            </div>
+            <?php unset($_SESSION['flash']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="flash-message flash-error">
+                <i class="fas fa-exclamation-circle"></i> <?= $_SESSION['error'] ?>
+            </div>
+            <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+
+        <!-- Estadísticas -->
+        <?php 
+        $requestStats = isset($requestStats) ? $requestStats : [];
+        if (!empty($requestStats)): 
+        ?>
+        <div style="padding: 20px 30px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-bottom: 1px solid #dee2e6;">
+            <h4 style="margin-bottom: 15px; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-chart-line"></i> Estadísticas (Últimos 7 días)
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                <?php foreach ($requestStats as $stat): ?>
+                <div style="text-align: center; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <div style="font-size: 20px; font-weight: bold; color: var(--primary);">
+                        <?= $stat['total_requests'] ?? 0 ?>
                     </div>
-                    <?php include __DIR__ . '/../apicliente/index.php'; ?>
+                    <div style="font-size: 12px; color: var(--secondary);">
+                        <?= !empty($stat['request_date']) ? date('d/m', strtotime($stat['request_date'])) : 'N/A' ?>
+                    </div>
                 </div>
+                <?php endforeach; ?>
             </div>
         </div>
-    </div>
-</div>
-</body>
-
-
-                    </table>
-                </div>
+        <?php endif; ?>
+        
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" placeholder="Buscar request por token, tipo, fecha..." onkeyup="filtrarTabla(this, 'countrequestsTable')">
             </div>
         </div>
+
+        <table id="countrequestsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Token</th>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                // Asegurar que la variable existe y es un array
+                $countRequests = isset($countRequests) ? $countRequests : [];
+                ?>
+                <?php if(is_countable($countRequests) && count($countRequests) > 0): ?>
+                    <?php foreach ($countRequests as $cr): ?>
+                    <tr>
+                        <td><?= $cr['id'] ?? '' ?></td>
+                        <td>
+                            <div class="token-preview" title="<?= htmlspecialchars($cr['token'] ?? '') ?>">
+                                <?= htmlspecialchars(substr($cr['token'] ?? '', 0, 15)) ?>...
+                            </div>
+                        </td>
+                        <td><?= htmlspecialchars($cr['razon_social'] ?? 'N/A') ?></td>
+                        <td>
+                            <span class="status-badge status-completed">
+                                <?= htmlspecialchars($cr['tipo'] ?? '') ?>
+                            </span>
+                        </td>
+                        <td><?= !empty($cr['fecha']) ? date('d/m/Y H:i', strtotime($cr['fecha'])) : 'N/A' ?></td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="/webcon/index.php?route=countrequest:editForm&id=<?= $cr['id'] ?? '' ?>" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <a href="/webcon/index.php?route=countrequest:delete&id=<?= $cr['id'] ?? '' ?>" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('¿Estás seguro de eliminar este registro?')">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="6" style="text-align:center; color: #7f8c8d; padding: 30px;">
+                            <i class="fas fa-chart-bar" style="font-size: 48px; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
+                            No hay registros de requests
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
+            
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {

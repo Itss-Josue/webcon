@@ -444,7 +444,7 @@
                 
                 <div class="action-buttons">
                     <a href="index.php?controller=hotel&action=edit&id=<?= $hotel['id'] ?>" class="btn btn-primary">
-                        <i class="fas fa-edit"></i> Editar Hotel
+                        <i class="fas fa-edit"></i> Editar
                     </a>
                     <a href="index.php?controller=hotel&action=index" class="btn btn-secondary">
                         <i class="fas fa-list"></i> Volver al Listado

@@ -3,10 +3,10 @@ require_once __DIR__ . '/../models/Admin.php';
 
 class AdminController {
     private $model;
-    private $db; // Guardamos la conexión para otros modelos
+    private $db;
 
     public function __construct($db) {
-        $this->db = $db;              // Guardar la conexión
+        $this->db = $db;
         $this->model = new Admin($db);
 
         if (session_status() === PHP_SESSION_NONE) {
@@ -34,7 +34,6 @@ class AdminController {
             $_SESSION['admin_name'] = $admin['nombre'];
             $_SESSION['admin_user'] = $admin['usuario'];
 
-            // Ir al panel de administración
             header('Location: /webcon/index.php?route=admin:dashboard');
             exit;
         } else {
@@ -50,20 +49,29 @@ class AdminController {
             exit;
         }
 
-        // 🔹 Cargar datos desde modelos
+        // 🔹 Cargar TODOS los modelos necesarios
         require_once __DIR__ . '/../models/Cliente.php';
         require_once __DIR__ . '/../models/Proyecto.php';
         require_once __DIR__ . '/../models/Pago.php';
+        require_once __DIR__ . '/../models/ApiCliente.php';
+        require_once __DIR__ . '/../models/TokenApi.php';
+        require_once __DIR__ . '/../models/CountRequest.php';
 
         $clienteModel  = new Cliente($this->db);
         $proyectoModel = new Proyecto($this->db);
         $pagoModel     = new Pago($this->db);
+        $apiClienteModel = new ApiCliente($this->db);
+        $tokenApiModel = new TokenApi($this->db);
+        $countRequestModel = new CountRequest($this->db);
 
         $clientes  = $clienteModel->getAll() ?? [];
         $proyectos = $proyectoModel->getAll() ?? [];
         $pagos     = $pagoModel->getAll() ?? [];
+        $apiClientes = $apiClienteModel->getAll() ?? [];
+        $apiTokens = $tokenApiModel->getAll() ?? [];
+        $countRequests = $countRequestModel->getAll() ?? [];
+        $requestStats = $countRequestModel->getStats() ?? [];
 
-        // 🔹 Pasar a la vista
         require __DIR__ . '/../views/admin/dashboard.php';
     }
 

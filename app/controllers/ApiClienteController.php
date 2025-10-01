@@ -1,53 +1,51 @@
 <?php
-require_once __DIR__ . '/../models/ClientApi.php';
+require_once __DIR__ . '/../models/ApiCliente.php';
 
 class ApiClienteController {
     private $model;
 
-    public function __construct($db) {
-        $this->model = new ApiCliente($db);
+    public function __construct($pdo) {
+        $this->model = new ApiCliente($pdo);
     }
 
-    // 📌 Listado
-    public function index() {
-        $clientes = $this->model->getAll();
-        require __DIR__ . '/../views/apicliente/index.php';
+    // Mostrar formulario de creación
+    public function createForm() {
+        include __DIR__ . '/../views/apicliente/create.php';
     }
 
-    // 📌 Ver detalle
-    public function view($id) {
-        $cliente = $this->model->getById($id);
-        require __DIR__ . '/../views/apicliente/view.php';
+    // Guardar nuevo cliente API
+    public function store($data) {
+        $this->model->create($data);
+        $_SESSION['flash'] = "Cliente API registrado correctamente ✅";
+        header("Location: /webcon/index.php?route=admin:dashboard#apicliente");
+        exit;
     }
 
-    // 📌 Crear
-    public function create() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->model->create($_POST);
-            // 🔹 Redirigimos con status=created
-            header("Location: index.php?route=apicliente:index&status=created");
+    // Mostrar formulario de edición
+    public function editForm($id) {
+        $cliente = $this->model->find($id);
+        if (!$cliente) {
+            $_SESSION['flash'] = "Cliente API no encontrado ❌";
+            header("Location: /webcon/index.php?route=admin:dashboard#apicliente");
             exit;
         }
-        require __DIR__ . '/../views/apicliente/create.php';
+        include __DIR__ . '/../views/apicliente/edit.php';
     }
 
-    // 📌 Editar
-    public function edit($id) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->model->update($id, $_POST);
-            // 🔹 Redirigimos con status=updated
-            header("Location: index.php?route=apicliente:index&status=updated");
-            exit;
-        }
-        $cliente = $this->model->getById($id);
-        require __DIR__ . '/../views/apicliente/edit.php';
+    // Actualizar cliente API
+    public function update($id, $data) {
+        $this->model->update($id, $data);
+        $_SESSION['flash'] = "Cliente API actualizado correctamente ✅";
+        header("Location: /webcon/index.php?route=admin:dashboard#apicliente");
+        exit;
     }
 
-    // 📌 Eliminar
+    // Eliminar cliente API
     public function delete($id) {
         $this->model->delete($id);
-        // 🔹 Redirigimos con status=deleted
-        header("Location: index.php?route=apicliente:index&status=deleted");
+        $_SESSION['flash'] = "Cliente API eliminado correctamente ✅";
+        header("Location: /webcon/index.php?route=admin:dashboard#apicliente");
         exit;
     }
 }
+?>
