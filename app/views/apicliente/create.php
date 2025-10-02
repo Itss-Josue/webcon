@@ -1,6 +1,5 @@
 <?php
 $title = "Agregar Cliente API";
-// Usa la ruta correcta para los layouts
 include __DIR__ . '/../layouts/header.php';
 ?>
 
@@ -10,11 +9,6 @@ include __DIR__ . '/../layouts/header.php';
         <i class="fas fa-arrow-left"></i> Volver al Dashboard
     </a>
 </div>
-
-<?php if (isset($_SESSION['flash'])): ?>
-    <div class="flash-message flash-success"><?= $_SESSION['flash'] ?></div>
-    <?php unset($_SESSION['flash']); ?>
-<?php endif; ?>
 
 <form method="POST" action="/webcon/index.php?route=api-cliente:store" class="form-container">
     <div class="form-group">
@@ -57,7 +51,4 @@ include __DIR__ . '/../layouts/header.php';
     </div>
 </form>
 
-<?php 
-// Usa la ruta correcta para el footer
-include __DIR__ . '/../layouts/footer.php'; 
-?>
+<?php include __DIR__ . '/../layouts/footer.php'; ?>

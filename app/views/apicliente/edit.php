@@ -10,11 +10,6 @@ include __DIR__ . '/../layouts/header.php';
     </a>
 </div>
 
-<?php if (isset($_SESSION['flash'])): ?>
-    <div class="flash-message flash-success"><?= $_SESSION['flash'] ?></div>
-    <?php unset($_SESSION['flash']); ?>
-<?php endif; ?>
-
 <form method="POST" action="/webcon/index.php?route=api-cliente:update&id=<?= $cliente['id'] ?>" class="form-container">
     <div class="form-group">
         <label for="ruc">RUC *</label>

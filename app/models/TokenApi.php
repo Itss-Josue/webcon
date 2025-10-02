@@ -80,10 +80,5 @@ class TokenApi {
         $stmt = $this->pdo->prepare("DELETE FROM tokens_api WHERE id=?");
         return $stmt->execute([$id]);
     }
-
-    // Obtener estadísticas
-    public function getStats() {
-        return [];
-    }
 }
 ?>

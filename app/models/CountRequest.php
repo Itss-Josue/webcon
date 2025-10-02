@@ -87,5 +87,20 @@ class CountRequest {
             return [];
         }
     }
+
+    // Obtener tipos de requests disponibles
+    public function getTipos() {
+        return [
+            'consulta' => 'Consulta',
+            'autenticacion' => 'Autenticación',
+            'reporte' => 'Reporte',
+            'validacion' => 'Validación',
+            'api_consulta' => 'API Consulta',
+            'auth_login' => 'Auth Login',
+            'data_export' => 'Exportación de Datos',
+            'report_generate' => 'Generación de Reporte',
+            'user_validation' => 'Validación de Usuario'
+        ];
+    }
 }
 ?>
