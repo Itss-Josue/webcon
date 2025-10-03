@@ -5,7 +5,7 @@ include __DIR__ . '/../layouts/header.php';
 
 <div class="form-header">
     <h1><i class="fas fa-key"></i> <?= $title ?></h1>
-    <a href="/webcon/index.php?route=admin:dashboard#apitoken" class="btn btn-secondary">
+    <a href="/webcon/index.php?route=dashboard:index#apitoken" class="btn btn-secondary">
         <i class="fas fa-arrow-left"></i> Volver al Dashboard
     </a>
 </div>

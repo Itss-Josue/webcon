@@ -23,21 +23,30 @@ class TokenApi {
     }
 
     // Crear nuevo token
-    public function create($data) {
-        // Generar token único
-        $token = bin2hex(random_bytes(32));
-        
-        $stmt = $this->pdo->prepare("
-            INSERT INTO tokens_api (id_client_api, token, fecha_registro, estado) 
-            VALUES (?, ?, ?, ?)
-        ");
-        return $stmt->execute([
-            $data['id_client_api'],
-            $token,
-            $data['fecha_registro'] ?? date('Y-m-d'),
-            $data['estado'] ?? 1
-        ]) ? $token : false;
-    }
+public function create($data) {
+    // Generar token único base - DIFERENTE CADA VEZ
+    $tokenBase = bin2hex(random_bytes(32));
+    
+    // Obtener fecha actual en formato YYYYMMDD
+    $fecha = date('Ymd');
+    
+    // Obtener el ID del cliente - SE MANTIENE EL MISMO
+    $idCliente = $data['id_client_api'];
+    
+    // Crear token final con fecha e ID del cliente
+    $token = $tokenBase . '_' . $fecha . '_' . $idCliente;
+    
+    $stmt = $this->pdo->prepare("
+        INSERT INTO tokens_api (id_client_api, token, fecha_registro, estado) 
+        VALUES (?, ?, ?, ?)
+    ");
+    return $stmt->execute([
+        $data['id_client_api'],
+        $token,
+        $data['fecha_registro'] ?? date('Y-m-d'),
+        $data['estado'] ?? 1
+    ]) ? $token : false;
+}
 
     // Encontrar token por ID
     public function find($id) {
@@ -68,7 +77,23 @@ class TokenApi {
 
     // Regenerar token
     public function regenerate($id) {
-        $newToken = bin2hex(random_bytes(32));
+        // Generar nuevo token base
+        $tokenBase = bin2hex(random_bytes(16));
+        
+        // Obtener fecha actual en formato YYYYMMDD
+        $fecha = date('Ymd');
+        
+        // Obtener el ID del cliente desde la base de datos
+        $tokenData = $this->find($id);
+        if (!$tokenData) {
+            return false;
+        }
+        
+        $idCliente = $tokenData['id_client_api'];
+        
+        // Crear token final con fecha e ID del cliente
+        $newToken = $tokenBase . '_' . $fecha . '_' . $idCliente;
+        
         $stmt = $this->pdo->prepare("
             UPDATE tokens_api SET token=?, fecha_registro=? WHERE id=?
         ");
