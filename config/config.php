@@ -1,7 +1,7 @@
 <?php
 class Database {
-    private $host = "localhost"; // en cPanel normalmente es localhost
-    private $db_name = "webcon"; 
+    private $host = "localhost";
+    private $db_name = "webcon2.0"; 
     private $username = "root"; 
     private $password = "root"; 
     private $conn;
@@ -16,7 +16,10 @@ class Database {
                 );
                 $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } catch (PDOException $e) {
-                die("❌ Error de conexión: " . $e->getMessage());
+                // Para API, retornar JSON en lugar de die()
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Error de conexión a la base de datos']);
+                exit;
             }
         }
         return $this->conn;
@@ -26,3 +29,8 @@ class Database {
         $this->conn = null;
     }
 }
+
+// Crear instancia global para la API
+$database = new Database();
+$conn = $database->getConnection();
+?>

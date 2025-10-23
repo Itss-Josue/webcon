@@ -29,16 +29,21 @@ try {
 }
 
 // ✅ Definir rutas
+// ✅ Definir rutas (agrega estas nuevas rutas API)
 $routes = [
-    'admin' => 'AdminController',
-    'dashboard' => 'DashboardController',
-    'cliente' => 'ClienteController',
-    'pago' => 'PagoController',
-    'proyecto' => 'ProyectoController',
-    'auth' => 'AuthController',
-    'api-cliente' => 'ApiClienteController',
-    'apitoken' => 'ApiTokenController',
-    'countrequest' => 'CountRequestController'
+    'admin'         => 'AdminController',
+    'dashboard'     => 'DashboardController',
+    'cliente'       => 'ClienteController',
+    'pago'          => 'PagoController',
+    'proyecto'      => 'ProyectoController',
+    'auth'          => 'AuthController',
+    'api-cliente'   => 'ApiClienteController',
+    'apitoken'      => 'ApiTokenController',
+    'countrequest'  => 'CountRequestController',
+    'apiProyecto'   => 'ApiProyectoController',
+    
+    // 🆕 NUEVAS RUTAS PARA LA BÚSQUEDA
+    'apisearch'     => 'ApiSearchController'
 ];
 
 // ✅ Obtener ruta
@@ -96,9 +101,16 @@ foreach ($parameters as $param) {
     }
 }
 
-// ✅ Ejecutar acción
+// ✅ Ejecutar acción con soporte JSON
 try {
-    call_user_func_array([$controller, $action], $params);
+    $response = call_user_func_array([$controller, $action], $params);
+
+    // 🧩 Si el controlador devuelve un array u objeto → enviar JSON
+    if (is_array($response) || is_object($response)) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+
 } catch (Exception $e) {
     handleError("Error ejecutando acción: " . $e->getMessage());
 }

@@ -6,7 +6,24 @@ class TokenApi {
         $this->pdo = $pdo;
     }
 
-    // Obtener todos los tokens con información del cliente
+    // Método nuevo para API REST
+    public function findByToken($token) {
+    try {
+        $stmt = $this->pdo->prepare("
+            SELECT ta.*, ca.razon_social, ca.ruc
+            FROM tokens_api ta 
+            LEFT JOIN client_api ca ON ta.id_client_api = ca.id 
+            WHERE ta.token = ? AND ta.estado = 1
+        ");
+        $stmt->execute([$token]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        error_log("Error in TokenApi::findByToken(): " . $e->getMessage());
+        return null;
+    }
+}
+
+    // Mantener todos los métodos existentes sin cambios
     public function getAll() {
         try {
             $stmt = $this->pdo->query("
@@ -22,33 +39,24 @@ class TokenApi {
         }
     }
 
-    // Crear nuevo token
-public function create($data) {
-    // Generar token único base - DIFERENTE CADA VEZ
-    $tokenBase = bin2hex(random_bytes(32));
-    
-    // Obtener fecha actual en formato YYYYMMDD
-    $fecha = date('Ymd');
-    
-    // Obtener el ID del cliente - SE MANTIENE EL MISMO
-    $idCliente = $data['id_client_api'];
-    
-    // Crear token final con fecha e ID del cliente
-    $token = $tokenBase . '_' . $fecha . '_' . $idCliente;
-    
-    $stmt = $this->pdo->prepare("
-        INSERT INTO tokens_api (id_client_api, token, fecha_registro, estado) 
-        VALUES (?, ?, ?, ?)
-    ");
-    return $stmt->execute([
-        $data['id_client_api'],
-        $token,
-        $data['fecha_registro'] ?? date('Y-m-d'),
-        $data['estado'] ?? 1
-    ]) ? $token : false;
-}
+    public function create($data) {
+        $tokenBase = bin2hex(random_bytes(32));
+        $fecha = date('Ymd');
+        $idCliente = $data['id_client_api'];
+        $token = $tokenBase . '_' . $fecha . '_' . $idCliente;
+        
+        $stmt = $this->pdo->prepare("
+            INSERT INTO tokens_api (id_client_api, token, fecha_registro, estado) 
+            VALUES (?, ?, ?, ?)
+        ");
+        return $stmt->execute([
+            $data['id_client_api'],
+            $token,
+            $data['fecha_registro'] ?? date('Y-m-d'),
+            $data['estado'] ?? 1
+        ]) ? $token : false;
+    }
 
-    // Encontrar token por ID
     public function find($id) {
         $stmt = $this->pdo->prepare("
             SELECT ta.*, ca.razon_social, ca.ruc
@@ -60,7 +68,6 @@ public function create($data) {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Actualizar token
     public function update($id, $data) {
         $stmt = $this->pdo->prepare("
             UPDATE tokens_api SET 
@@ -75,23 +82,14 @@ public function create($data) {
         ]);
     }
 
-    // Regenerar token
     public function regenerate($id) {
-        // Generar nuevo token base
         $tokenBase = bin2hex(random_bytes(16));
-        
-        // Obtener fecha actual en formato YYYYMMDD
         $fecha = date('Ymd');
-        
-        // Obtener el ID del cliente desde la base de datos
         $tokenData = $this->find($id);
         if (!$tokenData) {
             return false;
         }
-        
         $idCliente = $tokenData['id_client_api'];
-        
-        // Crear token final con fecha e ID del cliente
         $newToken = $tokenBase . '_' . $fecha . '_' . $idCliente;
         
         $stmt = $this->pdo->prepare("
@@ -100,10 +98,10 @@ public function create($data) {
         return $stmt->execute([$newToken, date('Y-m-d'), $id]) ? $newToken : false;
     }
 
-    // Eliminar token
     public function delete($id) {
         $stmt = $this->pdo->prepare("DELETE FROM tokens_api WHERE id=?");
         return $stmt->execute([$id]);
     }
+    
 }
 ?>
