@@ -62,5 +62,6 @@ class ApiCliente {
         $stmt = $this->pdo->prepare("DELETE FROM client_api WHERE id=?");
         return $stmt->execute([$id]);
     }
+    
 }
 ?>

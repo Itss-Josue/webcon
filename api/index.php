@@ -449,7 +449,7 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <div class="logo-icon">🔍</div>
+                    <div class="logo-icon"></div>
                     <h1>WebCon API - Sistema de Consulta</h1>
                 </div>
                 <div class="status">
@@ -545,557 +545,43 @@
     </footer>
 
     <script>
-        // El código JavaScript permanece exactamente igual
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchForm = document.getElementById('searchForm');
-            const searchInput = document.getElementById('searchInput');
-            const resultsSection = document.getElementById('resultsSection');
-            const resultsContainer = document.getElementById('resultsContainer');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const errorMessage = document.getElementById('errorMessage');
-            const clearBtn = document.getElementById('clearBtn');
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessage = document.getElementById('errorMessage');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        // Función para actualizar la URL con el ID del cliente
+        function updateURL(clientId = null) {
+            const baseUrl = window.location.origin + window.location.pathname;
             
-            // Función para determinar el tipo de búsqueda
-            function determineSearchType(value, selectedType) {
-                if (selectedType !== 'auto') return selectedType;
-                
-                // Detección automática
-                if (/^[CI]?\d+$/.test(value.toUpperCase())) return 'id';
-                if (/^\d{8}$/.test(value)) return 'dni';
-                if (value.toLowerCase().includes('team') || 
-                    value.toLowerCase().includes('corp') || 
-                    value.toLowerCase().includes('solutions') ||
-                    value.toLowerCase().includes('s.a.') ||
-                    value.toLowerCase().includes('sac') ||
-                    value.toLowerCase().includes('eirl')) return 'empresa';
-                
-                return 'nombre';
+            if (clientId) {
+                // Agregar el ID del cliente a la URL
+                const newUrl = `${baseUrl}?client_id=${clientId}`;
+                window.history.pushState({ client_id: clientId }, '', newUrl);
+            } else {
+                // Limpiar la URL si no hay cliente
+                window.history.pushState({}, '', baseUrl);
             }
-            
-            // Función para buscar clientes en la base de datos
-            async function searchClients(query, type) {
-                try {
-                    const response = await fetch('search_clients.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `query=${encodeURIComponent(query)}&type=${type}`
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Error en la respuesta del servidor');
-                    }
-                    
-                    const data = await response.json();
-                    return data;
-                } catch (error) {
-                    console.error('Error al buscar clientes:', error);
-                    throw error;
-                }
-            }
+        }
 
-            // Función para obtener información completa del cliente
-            async function getClientDetails(clientId) {
-                try {
-                    const response = await fetch('get_client_details.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ client_id: clientId })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Error al obtener detalles del cliente');
-                    }
-                    
-                    const data = await response.json();
-                    return data;
-                } catch (error) {
-                    console.error('Error:', error);
-                    throw error;
-                }
-            }
+        // Función para obtener el ID del cliente desde la URL
+        function getClientIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('client_id');
+        }
 
-            // Función para obtener proyectos del cliente
-            async function getClientProjects(clientId) {
-                try {
-                    const response = await fetch('get_client_projects.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ client_id: clientId })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Error al obtener proyectos del cliente');
-                    }
-                    
-                    const data = await response.json();
-                    return data;
-                } catch (error) {
-                    console.error('Error:', error);
-                    throw error;
-                }
-            }
-
-            // Función para mostrar modal con información
-            function showModal(title, content) {
-                // Crear modal si no existe
-                let modal = document.getElementById('infoModal');
-                if (!modal) {
-                    modal = document.createElement('div');
-                    modal.id = 'infoModal';
-                    modal.className = 'modal';
-                    
-                    modal.innerHTML = `
-                        <div class="modal-content">
-                            <button class="close-btn">×</button>
-                            <h2 style="color: var(--secondary-color); margin-bottom: 20px; padding-right: 40px;">${title}</h2>
-                            <div class="modal-body"></div>
-                        </div>
-                    `;
-                    
-                    document.body.appendChild(modal);
-                    
-                    // Cerrar modal al hacer click en la X
-                    modal.querySelector('.close-btn').addEventListener('click', function() {
-                        modal.style.display = 'none';
-                    });
-                    
-                    // Cerrar modal al hacer click fuera del contenido
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === modal) {
-                            modal.style.display = 'none';
-                        }
-                    });
-                }
-                
-                // Actualizar título y contenido
-                modal.querySelector('h2').textContent = title;
-                modal.querySelector('.modal-body').innerHTML = content;
-                modal.style.display = 'flex';
-            }
-
-            // Función para formatear información del cliente
-            function formatClientDetails(data) {
-                if (!data.success) {
-                    return `<div class="error-message">${data.message}</div>`;
-                }
-                
-                const client = data.client;
-                const stats = data.stats;
-                const payments = data.payments;
-                
-                return `
-                    <div class="client-info" style="margin-bottom: 25px;">
-                        <h3 style="color: var(--secondary-color); margin-bottom: 15px;">Información Personal</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                            <div>
-                                <strong>Nombre:</strong> ${client.name || 'No disponible'}
-                            </div>
-                            <div>
-                                <strong>DNI:</strong> ${client.dni || 'No disponible'}
-                            </div>
-                            <div>
-                                <strong>Empresa:</strong> ${client.company || 'No disponible'}
-                            </div>
-                            <div>
-                                <strong>Email:</strong> ${client.email || 'No disponible'}
-                            </div>
-                            <div>
-                                <strong>Teléfono:</strong> ${client.phone || 'No disponible'}
-                            </div>
-                            <div>
-                                <strong>Fecha de Registro:</strong> ${client.created_at || 'No disponible'}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="stats-info" style="margin-bottom: 25px;">
-                        <h3 style="color: var(--secondary-color); margin-bottom: 15px;">Estadísticas de Proyectos</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                            <div style="background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(100, 255, 218, 0.2);">
-                                <div style="font-size: 24px; font-weight: bold; color: var(--secondary-color);">${stats.total_projects || 0}</div>
-                                <div style="color: var(--text-secondary);">Total Proyectos</div>
-                            </div>
-                            <div style="background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(100, 255, 218, 0.2);">
-                                <div style="font-size: 24px; font-weight: bold; color: var(--secondary-color);">${stats.active_projects || 0}</div>
-                                <div style="color: var(--text-secondary);">Proyectos Activos</div>
-                            </div>
-                            <div style="background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(100, 255, 218, 0.2);">
-                                <div style="font-size: 24px; font-weight: bold; color: var(--secondary-color);">${stats.completed_projects || 0}</div>
-                                <div style="color: var(--text-secondary);">Proyectos Completados</div>
-                            </div>
-                            <div style="background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(100, 255, 218, 0.2);">
-                                <div style="font-size: 24px; font-weight: bold; color: var(--secondary-color);">S/. ${stats.total_paid || '0.00'}</div>
-                                <div style="color: var(--text-secondary);">Total Pagado</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="payments-info">
-                        <h3 style="color: var(--secondary-color); margin-bottom: 15px;">Historial de Pagos</h3>
-                        ${payments.length > 0 ? `
-                            <div style="max-height: 300px; overflow-y: auto;">
-                                <table style="width: 100%; border-collapse: collapse;">
-                                    <thead>
-                                        <tr style="background: rgba(100, 255, 218, 0.1); color: var(--secondary-color);">
-                                            <th style="padding: 12px; text-align: left;">Proyecto</th>
-                                            <th style="padding: 12px; text-align: left;">Monto</th>
-                                            <th style="padding: 12px; text-align: left;">Fecha</th>
-                                            <th style="padding: 12px; text-align: left;">Método</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${payments.map(payment => `
-                                            <tr style="border-bottom: 1px solid rgba(100, 255, 218, 0.1);">
-                                                <td style="padding: 12px;">${payment.project_name || 'N/A'}</td>
-                                                <td style="padding: 12px;">S/. ${parseFloat(payment.amount).toFixed(2)}</td>
-                                                <td style="padding: 12px;">${payment.paid_date || 'N/A'}</td>
-                                                <td style="padding: 12px;">${payment.method || 'N/A'}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ` : '<p style="color: var(--text-secondary); text-align: center;">No hay pagos registrados</p>'}
-                    </div>
-                `;
-            }
-
-            // Función para formatear proyectos del cliente
-            // Función para formatear proyectos del cliente
-function formatClientProjects(data) {
-    if (!data.success) {
-        return `<div class="error-message">${data.message}</div>`;
-    }
-    
-    const projects = data.data;
-    
-    if (projects.length === 0) {
-        return `
-            <div style="text-align: center; padding: 40px;">
-                <div style="font-size: 48px; color: var(--text-secondary); margin-bottom: 20px;">📋</div>
-                <h3 style="color: var(--text-primary); margin-bottom: 10px;">No hay proyectos registrados</h3>
-                <p style="color: var(--text-secondary);">Este cliente no tiene proyectos asignados actualmente.</p>
-            </div>
-        `;
-    }
-    
-    // Calcular estadísticas generales
-    const totalProjects = projects.length;
-    const activeProjects = projects.filter(p => p.status === 'active').length;
-    const completedProjects = projects.filter(p => p.status === 'completed').length;
-    const totalValue = projects.reduce((sum, p) => sum + parseFloat(p.total_price || 0), 0);
-    
-    return `
-        <div class="projects-dashboard">
-            <!-- Resumen de proyectos -->
-            <div class="projects-summary" style="
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 15px;
-                margin-bottom: 30px;
-            ">
-                <div style="
-                    background: rgba(100, 255, 218, 0.1);
-                    padding: 20px;
-                    border-radius: 12px;
-                    text-align: center;
-                    border: 1px solid rgba(100, 255, 218, 0.2);
-                ">
-                    <div style="font-size: 28px; font-weight: bold; color: var(--secondary-color);">${totalProjects}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">Total Proyectos</div>
-                </div>
-                <div style="
-                    background: rgba(100, 255, 218, 0.1);
-                    padding: 20px;
-                    border-radius: 12px;
-                    text-align: center;
-                    border: 1px solid rgba(100, 255, 218, 0.2);
-                ">
-                    <div style="font-size: 28px; font-weight: bold; color: var(--secondary-color);">${activeProjects}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">Activos</div>
-                </div>
-                <div style="
-                    background: rgba(100, 255, 218, 0.1);
-                    padding: 20px;
-                    border-radius: 12px;
-                    text-align: center;
-                    border: 1px solid rgba(100, 255, 218, 0.2);
-                ">
-                    <div style="font-size: 28px; font-weight: bold; color: var(--secondary-color);">${completedProjects}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">Completados</div>
-                </div>
-                <div style="
-                    background: rgba(100, 255, 218, 0.1);
-                    padding: 20px;
-                    border-radius: 12px;
-                    text-align: center;
-                    border: 1px solid rgba(100, 255, 218, 0.2);
-                ">
-                    <div style="font-size: 28px; font-weight: bold; color: var(--secondary-color);">S/. ${totalValue.toFixed(2)}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">Valor Total</div>
-                </div>
-            </div>
+        // Función para buscar automáticamente cuando hay un ID en la URL
+        async function searchFromURL() {
+            const clientId = getClientIdFromURL();
             
-            <!-- Lista de proyectos -->
-            <div style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
-                <div style="display: grid; gap: 20px;">
-                    ${projects.map(project => {
-                        const statusColors = {
-                            'active': {
-                                bg: 'rgba(100, 255, 218, 0.15)',
-                                border: 'rgba(100, 255, 218, 0.4)',
-                                text: 'var(--secondary-color)',
-                                icon: '🟢'
-                            },
-                            'pending': {
-                                bg: 'rgba(255, 209, 102, 0.15)',
-                                border: 'rgba(255, 209, 102, 0.4)',
-                                text: 'var(--warning-color)',
-                                icon: '🟡'
-                            },
-                            'completed': {
-                                bg: 'rgba(79, 195, 247, 0.15)',
-                                border: 'rgba(79, 195, 247, 0.4)',
-                                text: '#4fc3f7',
-                                icon: '🔵'
-                            },
-                            'cancelled': {
-                                bg: 'rgba(255, 107, 107, 0.15)',
-                                border: 'rgba(255, 107, 107, 0.4)',
-                                text: 'var(--accent-color)',
-                                icon: '🔴'
-                            }
-                        };
-                        
-                        const statusConfig = statusColors[project.status] || {
-                            bg: 'rgba(136, 146, 176, 0.15)',
-                            border: 'rgba(136, 146, 176, 0.4)',
-                            text: 'var(--text-secondary)',
-                            icon: '⚫'
-                        };
-                        
-                        const statusText = {
-                            'active': 'Activo',
-                            'pending': 'Pendiente',
-                            'completed': 'Completado',
-                            'cancelled': 'Cancelado'
-                        };
-                        
-                        const progressColor = project.progress >= 80 ? 'var(--success-color)' : 
-                                            project.progress >= 50 ? 'var(--warning-color)' : 
-                                            'var(--secondary-color)';
-                        
-                        return `
-                            <div style="
-                                border: 1px solid ${statusConfig.border};
-                                border-radius: 12px;
-                                padding: 25px;
-                                background: rgba(10, 25, 47, 0.6);
-                                transition: all 0.3s ease;
-                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                
-                                <!-- Header del proyecto -->
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                                    <div style="flex: 1;">
-                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                            <div style="font-size: 20px;">📁</div>
-                                            <h3 style="margin: 0; color: var(--text-primary); font-size: 1.3rem; font-weight: 600;">${project.name}</h3>
-                                        </div>
-                                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                                            <span style="
-                                                background: ${statusConfig.bg};
-                                                color: ${statusConfig.text};
-                                                padding: 6px 16px;
-                                                border-radius: 20px;
-                                                font-size: 0.85rem;
-                                                font-weight: 500;
-                                                border: 1px solid ${statusConfig.border};
-                                                display: flex;
-                                                align-items: center;
-                                                gap: 6px;
-                                            ">
-                                                ${statusConfig.icon} ${statusText[project.status] || project.status}
-                                            </span>
-                                            <span style="color: var(--text-secondary); font-size: 0.9rem;">
-                                                ${project.type || 'Tipo no especificado'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div style="font-size: 1.5rem; font-weight: bold; color: var(--secondary-color);">
-                                            S/. ${parseFloat(project.total_price || 0).toFixed(2)}
-                                        </div>
-                                        <div style="color: var(--text-secondary); font-size: 0.85rem;">Presupuesto</div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Información del proyecto -->
-                                <div style="
-                                    display: grid;
-                                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                                    gap: 20px;
-                                    margin-bottom: 20px;
-                                    padding: 20px;
-                                    background: rgba(17, 34, 64, 0.5);
-                                    border-radius: 8px;
-                                ">
-                                    <div>
-                                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 5px;">Fecha de Entrega</div>
-                                        <div style="color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 8px;">
-                                            <span>📅</span> ${project.delivery_date_formatted || 'No definida'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 5px;">Fecha de Creación</div>
-                                        <div style="color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 8px;">
-                                            <span>🕒</span> ${project.created_at || 'No disponible'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 5px;">Progreso Actual</div>
-                                        <div style="color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 8px;">
-                                            <span>📊</span> ${project.progress || 0}%
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Barra de progreso -->
-                                <div style="margin-bottom: 15px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                        <div style="color: var(--text-secondary); font-size: 0.9rem;">Progreso del proyecto</div>
-                                        <div style="color: ${progressColor}; font-weight: 600; font-size: 0.9rem;">${project.progress || 0}%</div>
-                                    </div>
-                                    <div style="
-                                        background: rgba(136, 146, 176, 0.2);
-                                        border-radius: 10px;
-                                        height: 12px;
-                                        overflow: hidden;
-                                    ">
-                                        <div style="
-                                            background: ${progressColor};
-                                            height: 100%;
-                                            border-radius: 10px;
-                                            width: ${project.progress || 0}%;
-                                            transition: width 0.5s ease;
-                                            box-shadow: 0 0 10px ${progressColor}40;
-                                        "></div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Información adicional -->
-                                <div style="
-                                    display: flex;
-                                    justify-content: space-between;
-                                    align-items: center;
-                                    padding-top: 15px;
-                                    border-top: 1px solid rgba(100, 255, 218, 0.1);
-                                ">
-                                    <div style="color: var(--text-secondary); font-size: 0.85rem;">
-                                        ID: ${project.id} • Creado: ${project.created_at ? project.created_at.split(' ')[0] : 'N/A'}
-                                    </div>
-                                    <div style="
-                                        color: var(--secondary-color);
-                                        font-size: 0.9rem;
-                                        font-weight: 500;
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 6px;
-                                    ">
-                                        <span>👁️</span> Detalles del proyecto
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-            
-            <!-- Pie de página del modal -->
-            <div style="
-                margin-top: 25px;
-                padding-top: 20px;
-                border-top: 1px solid rgba(100, 255, 218, 0.1);
-                text-align: center;
-                color: var(--text-secondary);
-                font-size: 0.9rem;
-            ">
-                Mostrando ${projects.length} proyecto${projects.length !== 1 ? 's' : ''} • Última actualización: ${new Date().toLocaleDateString()}
-            </div>
-        </div>
-    `;
-}
-            
-            // Función para mostrar resultados
-            function displayResults(clients) {
-                resultsContainer.innerHTML = '';
-                
-                if (clients.length === 0) {
-                    resultsContainer.innerHTML = `
-                        <div class="no-results">
-                            <h3>No se encontraron clientes</h3>
-                            <p>Intenta con otros términos de búsqueda</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                clients.forEach(client => {
-                    const clientCard = document.createElement('div');
-                    clientCard.className = 'client-card';
-                    
-                    clientCard.innerHTML = `
-                        <div class="client-header">
-                            <div class="client-name">${client.name}</div>
-                            <div class="client-id">ID: ${client.id}</div>
-                        </div>
-                        <div class="client-details">
-                            <div class="detail-item">
-                                <span class="detail-label">DNI</span>
-                                <span class="detail-value">${client.dni || 'No disponible'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Empresa</span>
-                                <span class="detail-value">${client.company || 'No disponible'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Email</span>
-                                <span class="detail-value">${client.email || 'No disponible'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Teléfono</span>
-                                <span class="detail-value">${client.phone || 'No disponible'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Fecha de Registro</span>
-                                <span class="detail-value">${client.created_at || 'No disponible'}</span>
-                            </div>
-                        </div>
-                        <div class="client-actions">
-                            <button class="btn btn-primary btn-small" onclick="viewClientDetails(${client.id})">Ver Información Completa</button>
-                            <button class="btn btn-secondary btn-small" onclick="viewClientProjects(${client.id})">Ver Proyectos</button>
-                        </div>
-                    `;
-                    
-                    resultsContainer.appendChild(clientCard);
-                });
-            }
-            
-            // Manejar envío del formulario
-            searchForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const query = searchInput.value.trim();
-                if (!query) return;
-                
-                const selectedType = document.querySelector('input[name="searchType"]:checked').value;
-                const searchType = determineSearchType(query, selectedType);
+            if (clientId && !isNaN(clientId)) {
+                // Simular una búsqueda automática
+                searchInput.value = clientId;
+                document.getElementById('idType').checked = true;
                 
                 // Mostrar carga
                 loadingIndicator.style.display = 'block';
@@ -1103,47 +589,647 @@ function formatClientProjects(data) {
                 errorMessage.style.display = 'none';
                 
                 try {
-                    const results = await searchClients(query, searchType);
+                    const results = await searchClients(clientId, 'id');
                     displayResults(results);
                     resultsSection.style.display = 'block';
+                    
+                    // Si hay exactamente un resultado, mostrar sus detalles automáticamente
+                    if (results.length === 1) {
+                        setTimeout(() => {
+                            viewClientDetails(clientId, true);
+                        }, 500);
+                    }
                 } catch (error) {
-                    errorMessage.textContent = 'Error al realizar la búsqueda. Intenta nuevamente.';
+                    errorMessage.textContent = 'Error al cargar el cliente desde la URL';
                     errorMessage.style.display = 'block';
                 } finally {
                     loadingIndicator.style.display = 'none';
                 }
+            }
+        }
+        
+        // Función para determinar el tipo de búsqueda
+        function determineSearchType(value, selectedType) {
+            if (selectedType !== 'auto') return selectedType;
+            
+            // Detección automática
+            if (/^[CI]?\d+$/.test(value.toUpperCase())) return 'id';
+            if (/^\d{8}$/.test(value)) return 'dni';
+            if (value.toLowerCase().includes('team') || 
+                value.toLowerCase().includes('corp') || 
+                value.toLowerCase().includes('solutions') ||
+                value.toLowerCase().includes('s.a.') ||
+                value.toLowerCase().includes('sac') ||
+                value.toLowerCase().includes('eirl')) return 'empresa';
+            
+            return 'nombre';
+        }
+        
+        // Función para buscar clientes en la base de datos
+        async function searchClients(query, type) {
+            try {
+                const response = await fetch('search_clients.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `query=${encodeURIComponent(query)}&type=${type}`
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error al buscar clientes:', error);
+                throw error;
+            }
+        }
+
+        // Función para obtener información completa del cliente
+        async function getClientDetails(clientId) {
+            try {
+                const response = await fetch('get_client_details.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ client_id: clientId })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error al obtener detalles del cliente');
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        // Función para obtener proyectos del cliente
+        async function getClientProjects(clientId) {
+            try {
+                const response = await fetch('get_client_projects.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ client_id: clientId })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error al obtener proyectos del cliente');
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        // Función para mostrar modal con información
+        function showModal(title, content) {
+            // Crear modal si no existe
+            let modal = document.getElementById('infoModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'infoModal';
+                modal.className = 'modal';
+                
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <button class="close-btn">×</button>
+                        <h2 style="color: var(--secondary-color); margin-bottom: 20px; padding-right: 40px;">${title}</h2>
+                        <div class="modal-body"></div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Cerrar modal al hacer click en la X
+                modal.querySelector('.close-btn').addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+                
+                // Cerrar modal al hacer click fuera del contenido
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Actualizar título y contenido
+            modal.querySelector('h2').textContent = title;
+            modal.querySelector('.modal-body').innerHTML = content;
+            modal.style.display = 'flex';
+        }
+
+        // Función para formatear información del cliente
+        function formatClientDetails(data) {
+            if (!data.success) {
+                return `<div class="error-message">${data.message}</div>`;
+            }
+            
+            const client = data.client;
+            const stats = data.stats;
+            const payments = data.payments;
+            
+            return `
+                <div class="client-info" style="margin-bottom: 25px;">
+                    <h3 style="color: var(--secondary-color); margin-bottom: 15px;">Información Personal</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <strong>Nombre:</strong> ${client.name || 'No disponible'}
+                        </div>
+                        <div>
+                            <strong>DNI:</strong> ${client.dni || 'No disponible'}
+                        </div>
+                        <div>
+                            <strong>Empresa:</strong> ${client.company || 'No disponible'}
+                        </div>
+                        <div>
+                            <strong>Email:</strong> ${client.email || 'No disponible'}
+                        </div>
+                        <div>
+                            <strong>Teléfono:</strong> ${client.phone || 'No disponible'}
+                        </div>
+                        <div>
+                            <strong>Fecha de Registro:</strong> ${client.created_at || 'No disponible'}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-info" style="margin-bottom: 25px;">
+                    <h3 style="color: var(--secondary-color); margin-bottom: 15px;">Estadísticas de Proyectos</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(100, 255, 218, 0.2);">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--secondary-color);">${stats.total_projects || 0}</div>
+                            <div style="color: var(--text-secondary);">Total Proyectos</div>
+                        </div>
+                        <div style="background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(100, 255, 218, 0.2);">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--secondary-color);">${stats.active_projects || 0}</div>
+                            <div style="color: var(--text-secondary);">Proyectos Activos</div>
+                        </div>
+                        <div style="background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(100, 255, 218, 0.2);">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--secondary-color);">${stats.completed_projects || 0}</div>
+                            <div style="color: var(--text-secondary);">Proyectos Completados</div>
+                        </div>
+                        <div style="background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(100, 255, 218, 0.2);">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--secondary-color);">S/. ${stats.total_paid || '0.00'}</div>
+                            <div style="color: var(--text-secondary);">Total Pagado</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="payments-info">
+                    <h3 style="color: var(--secondary-color); margin-bottom: 15px;">Historial de Pagos</h3>
+                    ${payments.length > 0 ? `
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: rgba(100, 255, 218, 0.1); color: var(--secondary-color);">
+                                        <th style="padding: 12px; text-align: left;">Proyecto</th>
+                                        <th style="padding: 12px; text-align: left;">Monto</th>
+                                        <th style="padding: 12px; text-align: left;">Fecha</th>
+                                        <th style="padding: 12px; text-align: left;">Método</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${payments.map(payment => `
+                                        <tr style="border-bottom: 1px solid rgba(100, 255, 218, 0.1);">
+                                            <td style="padding: 12px;">${payment.project_name || 'N/A'}</td>
+                                            <td style="padding: 12px;">S/. ${parseFloat(payment.amount).toFixed(2)}</td>
+                                            <td style="padding: 12px;">${payment.paid_date || 'N/A'}</td>
+                                            <td style="padding: 12px;">${payment.method || 'N/A'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : '<p style="color: var(--text-secondary); text-align: center;">No hay pagos registrados</p>'}
+                </div>
+            `;
+        }
+
+        // Función para formatear proyectos del cliente
+        function formatClientProjects(data) {
+            if (!data.success) {
+                return `<div class="error-message">${data.message}</div>`;
+            }
+            
+            const projects = data.data;
+            
+            if (projects.length === 0) {
+                return `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; color: var(--text-secondary); margin-bottom: 20px;">📋</div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 10px;">No hay proyectos registrados</h3>
+                        <p style="color: var(--text-secondary);">Este cliente no tiene proyectos asignados actualmente.</p>
+                    </div>
+                `;
+            }
+            
+            // Calcular estadísticas generales
+            const totalProjects = projects.length;
+            const activeProjects = projects.filter(p => p.status === 'active').length;
+            const completedProjects = projects.filter(p => p.status === 'completed').length;
+            const totalValue = projects.reduce((sum, p) => sum + parseFloat(p.total_price || 0), 0);
+            
+            return `
+                <div class="projects-dashboard">
+                    <!-- Resumen de proyectos -->
+                    <div class="projects-summary" style="
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    ">
+                        <div style="
+                            background: rgba(100, 255, 218, 0.1);
+                            padding: 20px;
+                            border-radius: 12px;
+                            text-align: center;
+                            border: 1px solid rgba(100, 255, 218, 0.2);
+                        ">
+                            <div style="font-size: 28px; font-weight: bold; color: var(--secondary-color);">${totalProjects}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Total Proyectos</div>
+                        </div>
+                        <div style="
+                            background: rgba(100, 255, 218, 0.1);
+                            padding: 20px;
+                            border-radius: 12px;
+                            text-align: center;
+                            border: 1px solid rgba(100, 255, 218, 0.2);
+                        ">
+                            <div style="font-size: 28px; font-weight: bold; color: var(--secondary-color);">${activeProjects}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Activos</div>
+                        </div>
+                        <div style="
+                            background: rgba(100, 255, 218, 0.1);
+                            padding: 20px;
+                            border-radius: 12px;
+                            text-align: center;
+                            border: 1px solid rgba(100, 255, 218, 0.2);
+                        ">
+                            <div style="font-size: 28px; font-weight: bold; color: var(--secondary-color);">${completedProjects}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Completados</div>
+                        </div>
+                        <div style="
+                            background: rgba(100, 255, 218, 0.1);
+                            padding: 20px;
+                            border-radius: 12px;
+                            text-align: center;
+                            border: 1px solid rgba(100, 255, 218, 0.2);
+                        ">
+                            <div style="font-size: 28px; font-weight: bold; color: var(--secondary-color);">S/. ${totalValue.toFixed(2)}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Valor Total</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lista de proyectos -->
+                    <div style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
+                        <div style="display: grid; gap: 20px;">
+                            ${projects.map(project => {
+                                const statusColors = {
+                                    'active': {
+                                        bg: 'rgba(100, 255, 218, 0.15)',
+                                        border: 'rgba(100, 255, 218, 0.4)',
+                                        text: 'var(--secondary-color)',
+                                        icon: '🟢'
+                                    },
+                                    'pending': {
+                                        bg: 'rgba(255, 209, 102, 0.15)',
+                                        border: 'rgba(255, 209, 102, 0.4)',
+                                        text: 'var(--warning-color)',
+                                        icon: '🟡'
+                                    },
+                                    'completed': {
+                                        bg: 'rgba(79, 195, 247, 0.15)',
+                                        border: 'rgba(79, 195, 247, 0.4)',
+                                        text: '#4fc3f7',
+                                        icon: '🔵'
+                                    },
+                                    'cancelled': {
+                                        bg: 'rgba(255, 107, 107, 0.15)',
+                                        border: 'rgba(255, 107, 107, 0.4)',
+                                        text: 'var(--accent-color)',
+                                        icon: '🔴'
+                                    }
+                                };
+                                
+                                const statusConfig = statusColors[project.status] || {
+                                    bg: 'rgba(136, 146, 176, 0.15)',
+                                    border: 'rgba(136, 146, 176, 0.4)',
+                                    text: 'var(--text-secondary)',
+                                    icon: '⚫'
+                                };
+                                
+                                const statusText = {
+                                    'active': 'Activo',
+                                    'pending': 'Pendiente',
+                                    'completed': 'Completado',
+                                    'cancelled': 'Cancelado'
+                                };
+                                
+                                const progressColor = project.progress >= 80 ? 'var(--success-color)' : 
+                                                    project.progress >= 50 ? 'var(--warning-color)' : 
+                                                    'var(--secondary-color)';
+                                
+                                return `
+                                    <div style="
+                                        border: 1px solid ${statusConfig.border};
+                                        border-radius: 12px;
+                                        padding: 25px;
+                                        background: rgba(10, 25, 47, 0.6);
+                                        transition: all 0.3s ease;
+                                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                        
+                                        <!-- Header del proyecto -->
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                                            <div style="flex: 1;">
+                                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                                    <div style="font-size: 20px;">📁</div>
+                                                    <h3 style="margin: 0; color: var(--text-primary); font-size: 1.3rem; font-weight: 600;">${project.name}</h3>
+                                                </div>
+                                                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                                                    <span style="
+                                                        background: ${statusConfig.bg};
+                                                        color: ${statusConfig.text};
+                                                        padding: 6px 16px;
+                                                        border-radius: 20px;
+                                                        font-size: 0.85rem;
+                                                        font-weight: 500;
+                                                        border: 1px solid ${statusConfig.border};
+                                                        display: flex;
+                                                        align-items: center;
+                                                        gap: 6px;
+                                                    ">
+                                                        ${statusConfig.icon} ${statusText[project.status] || project.status}
+                                                    </span>
+                                                    <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                                                        ${project.type || 'Tipo no especificado'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                <div style="font-size: 1.5rem; font-weight: bold; color: var(--secondary-color);">
+                                                    S/. ${parseFloat(project.total_price || 0).toFixed(2)}
+                                                </div>
+                                                <div style="color: var(--text-secondary); font-size: 0.85rem;">Presupuesto</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Información del proyecto -->
+                                        <div style="
+                                            display: grid;
+                                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                                            gap: 20px;
+                                            margin-bottom: 20px;
+                                            padding: 20px;
+                                            background: rgba(17, 34, 64, 0.5);
+                                            border-radius: 8px;
+                                        ">
+                                            <div>
+                                                <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 5px;">Fecha de Entrega</div>
+                                                <div style="color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                                                    <span>📅</span> ${project.delivery_date_formatted || 'No definida'}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 5px;">Fecha de Creación</div>
+                                                <div style="color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                                                    <span>🕒</span> ${project.created_at || 'No disponible'}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 5px;">Progreso Actual</div>
+                                                <div style="color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                                                    <span>📊</span> ${project.progress || 0}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Barra de progreso -->
+                                        <div style="margin-bottom: 15px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Progreso del proyecto</div>
+                                                <div style="color: ${progressColor}; font-weight: 600; font-size: 0.9rem;">${project.progress || 0}%</div>
+                                            </div>
+                                            <div style="
+                                                background: rgba(136, 146, 176, 0.2);
+                                                border-radius: 10px;
+                                                height: 12px;
+                                                overflow: hidden;
+                                            ">
+                                                <div style="
+                                                    background: ${progressColor};
+                                                    height: 100%;
+                                                    border-radius: 10px;
+                                                    width: ${project.progress || 0}%;
+                                                    transition: width 0.5s ease;
+                                                    box-shadow: 0 0 10px ${progressColor}40;
+                                                "></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Información adicional -->
+                                        <div style="
+                                            display: flex;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                            padding-top: 15px;
+                                            border-top: 1px solid rgba(100, 255, 218, 0.1);
+                                        ">
+                                            <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                                                ID: ${project.id} • Creado: ${project.created_at ? project.created_at.split(' ')[0] : 'N/A'}
+                                            </div>
+                                            <div style="
+                                                color: var(--secondary-color);
+                                                font-size: 0.9rem;
+                                                font-weight: 500;
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 6px;
+                                            ">
+                                                <span>👁️</span> Detalles del proyecto
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Pie de página del modal -->
+                    <div style="
+                        margin-top: 25px;
+                        padding-top: 20px;
+                        border-top: 1px solid rgba(100, 255, 218, 0.1);
+                        text-align: center;
+                        color: var(--text-secondary);
+                        font-size: 0.9rem;
+                    ">
+                        Mostrando ${projects.length} proyecto${projects.length !== 1 ? 's' : ''} • Última actualización: ${new Date().toLocaleDateString()}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Función para mostrar resultados
+        function displayResults(clients) {
+            resultsContainer.innerHTML = '';
+            
+            // Mostrar información de la URL actual
+            const currentClientId = getClientIdFromURL();
+            if (currentClientId) {
+                const urlInfo = document.createElement('div');
+                urlInfo.className = 'url-info';
+                urlInfo.innerHTML = `🔗 <strong>URL actual:</strong> Cliente ID: ${currentClientId}`;
+                resultsContainer.appendChild(urlInfo);
+            }
+            
+            if (clients.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <h3>No se encontraron clientes</h3>
+                        <p>Intenta con otros términos de búsqueda</p>
+                    </div>
+                `;
+                updateURL(); // Limpiar URL si no hay resultados
+                return;
+            }
+            
+            clients.forEach(client => {
+                const clientCard = document.createElement('div');
+                clientCard.className = 'client-card';
+                
+                clientCard.innerHTML = `
+                    <div class="client-header">
+                        <div class="client-name">${client.name}</div>
+                        <div class="client-id">ID: ${client.id}</div>
+                    </div>
+                    <div class="client-details">
+                        <div class="detail-item">
+                            <span class="detail-label">DNI</span>
+                            <span class="detail-value">${client.dni || 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Empresa</span>
+                            <span class="detail-value">${client.company || 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value">${client.email || 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Teléfono</span>
+                            <span class="detail-value">${client.phone || 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Fecha de Registro</span>
+                            <span class="detail-value">${client.created_at || 'No disponible'}</span>
+                        </div>
+                    </div>
+                    <div class="client-actions">
+                        <button class="btn btn-primary btn-small" onclick="viewClientDetails(${client.id}, true)">Ver Información Completa</button>
+                        <button class="btn btn-secondary btn-small" onclick="viewClientProjects(${client.id}, true)">Ver Proyectos</button>
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(clientCard);
             });
             
-            // Limpiar búsqueda
-            clearBtn.addEventListener('click', function() {
-                searchInput.value = '';
-                resultsSection.style.display = 'none';
-                errorMessage.style.display = 'none';
-            });
+            // Si hay exactamente un resultado, actualizar la URL con ese ID
+            if (clients.length === 1) {
+                updateURL(clients[0].id);
+            } else {
+                updateURL(); // Limpiar URL si hay múltiples resultados
+            }
+        }
+        
+        // Manejar envío del formulario
+        searchForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            // Funciones para los botones de acción
-            window.viewClientDetails = async function(clientId) {
-                try {
-                    const data = await getClientDetails(clientId);
-                    const content = formatClientDetails(data);
-                    showModal(`Información Completa - Cliente ID: ${clientId}`, content);
-                } catch (error) {
-                    alert('Error al cargar la información del cliente');
-                    console.error('Error:', error);
-                }
-            };
+            const query = searchInput.value.trim();
+            if (!query) return;
             
-            window.viewClientProjects = async function(clientId) {
-                try {
-                    const data = await getClientProjects(clientId);
-                    const content = formatClientProjects(data);
-                    showModal(`Proyectos - Cliente ID: ${clientId}`, content);
-                } catch (error) {
-                    alert('Error al cargar los proyectos del cliente');
-                    console.error('Error:', error);
-                }
-            };
+            const selectedType = document.querySelector('input[name="searchType"]:checked').value;
+            const searchType = determineSearchType(query, selectedType);
+            
+            // Mostrar carga
+            loadingIndicator.style.display = 'block';
+            resultsSection.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            try {
+                const results = await searchClients(query, searchType);
+                displayResults(results);
+                resultsSection.style.display = 'block';
+            } catch (error) {
+                errorMessage.textContent = 'Error al realizar la búsqueda. Intenta nuevamente.';
+                errorMessage.style.display = 'block';
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
         });
-    </script>
+        
+        // Limpiar búsqueda
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            resultsSection.style.display = 'none';
+            errorMessage.style.display = 'none';
+            updateURL(); // Limpiar la URL
+        });
+        
+        // Funciones para los botones de acción
+        window.viewClientDetails = async function(clientId, updateUrl = false) {
+            try {
+                if (updateUrl) {
+                    updateURL(clientId);
+                }
+                const data = await getClientDetails(clientId);
+                const content = formatClientDetails(data);
+                showModal(`Información Completa - Cliente ID: ${clientId}`, content);
+            } catch (error) {
+                alert('Error al cargar la información del cliente');
+                console.error('Error:', error);
+            }
+        };
+        
+        window.viewClientProjects = async function(clientId, updateUrl = false) {
+            try {
+                if (updateUrl) {
+                    updateURL(clientId);
+                }
+                const data = await getClientProjects(clientId);
+                const content = formatClientProjects(data);
+                showModal(`Proyectos - Cliente ID: ${clientId}`, content);
+            } catch (error) {
+                alert('Error al cargar los proyectos del cliente');
+                console.error('Error:', error);
+            }
+        };
+
+        // Buscar automáticamente si hay un ID en la URL al cargar la página
+        setTimeout(() => {
+            searchFromURL();
+        }, 100);
+
+        // Manejar el evento de navegación hacia atrás/adelante
+        window.addEventListener('popstate', function(event) {
+            searchFromURL();
+        });
+    });
+</script>
 </body>
 </html>

@@ -411,11 +411,6 @@ unset($_SESSION['flash'], $_SESSION['error']);
                         <i class="fas fa-sync-alt"></i> Regenerar Token
                     </a>
                     
-                    <a href="/webcon/index.php?route=apitoken:delete&id=<?= $token['id'] ?>" 
-                       class="btn btn-danger"
-                       onclick="return confirm('¿Estás seguro de que deseas eliminar este token? Esta acción no se puede deshacer.')">
-                        <i class="fas fa-trash"></i> Eliminar Token
-                    </a>
                 </div>
             </div>
         </div>
