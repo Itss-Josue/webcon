@@ -2,7 +2,6 @@
     RewriteEngine On
 
     # Ajusta la ruta base según tu carpeta
-    RewriteBase /webcon/
 
     # Si alguien entra al raíz → admin login
     RewriteRule ^$ index.php?route=admin:login [L,QSA]
