@@ -4,7 +4,7 @@
     # Ajusta la ruta base según tu carpeta
 
     # Si alguien entra al raíz → admin login
-    RewriteRule ^$ index.php?route=admin:login [L,QSA]
+    RewriteRule ^$ index.php?rout=admin:login [L,QSA]
 
     # Rutas tipo /controller/action/123 → index.php?route=controller:action&id=123
     RewriteCond %{REQUEST_FILENAME} !-f
