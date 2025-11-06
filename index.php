@@ -3,7 +3,7 @@ session_start();
 require_once __DIR__ . '/config/config.php';
 
 // ✅ Configuración
-define('DEBUG', true); // Cambiar a false en producción
+define('DEBUG', false); // Cambiar a false en producción
 
 // ✅ Función de manejo de errores
 function handleError($message, $code = 500) {
