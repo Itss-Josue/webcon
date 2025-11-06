@@ -21,4 +21,3 @@ if (file_exists($controllerFile)) {
 } else {
     die("El controlador '$controllerClass' no existe.");
 }
-echo 'public index.php';
