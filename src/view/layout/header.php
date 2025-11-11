@@ -7,6 +7,7 @@ if(!isset($_SESSION)) session_start();
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>body{padding-top:70px}</style>
 </head><body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
@@ -29,3 +30,15 @@ if(!isset($_SESSION)) session_start();
   </div>
 </nav>
 <div class="container">
+
+<?php if (!isset($_SESSION['bienvenida_mostrada'])): ?>
+<script>
+Swal.fire({
+  title: "¡Bienvenido <?= htmlspecialchars($_SESSION['user_name'] ?? 'Invitado') ?>!",
+  text: "Has ingresado correctamente al sistema WEBcon",
+  icon: "success",
+  confirmButtonText: "Continuar",
+  draggable: true
+});
+</script>
+<?php $_SESSION['bienvenida_mostrada'] = true; endif; ?>

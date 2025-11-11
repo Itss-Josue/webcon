@@ -1,69 +1,50 @@
 <?php
-require_once __DIR__ . '/../config/config.php';
+require_once 'BaseModel.php';
 
-class TokenModel {
-    private $conn;
+class TokenModel extends BaseModel {
 
-    public function __construct() {
-        $db = new Database();
-        $this->conn = $db->getConnection();
-    }
-
-    // ✅ Obtener todos los tokens con datos del cliente
     public function getAll() {
         $sql = "SELECT t.*, c.name AS client_name 
-                FROM tokens_api t
-                INNER JOIN clients c ON t.client_id = c.id
-                ORDER BY t.id DESC";
-        $stmt = $this->conn->prepare($sql);
+                FROM tokens t
+                LEFT JOIN clients c ON c.id = t.client_id
+                ORDER BY t.created_at DESC";
+        $stmt = $this->db->prepare($sql);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll();
     }
 
-    // ✅ Crear token automáticamente
-    public function createToken($clientId) {
-        $token = bin2hex(random_bytes(20)); // Token seguro aleatorio
-        $sql = "INSERT INTO tokens_api (token, client_id, status) VALUES (:token, :client_id, 'Activo')";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            ':token' => $token,
-            ':client_id' => $clientId
-        ]);
-        return ['id' => $this->conn->lastInsertId(), 'token' => $token];
+    public function create($d) {
+        $sql = "INSERT INTO tokens (client_id, token, expires_at, status, created_at)
+                VALUES (?, ?, ?, ?, NOW())";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$d['client_id'], $d['token'], $d['expires_at'], $d['status']]);
     }
 
-    // ✅ Buscar token por ID
-    public function findById($id) {
-        $sql = "SELECT * FROM tokens_api WHERE id = :id";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':id' => $id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+    public function update($id, $d) {
+        $sql = "UPDATE tokens 
+                SET token=?, expires_at=?, status=?, updated_at=NOW() 
+                WHERE id=?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$d['token'], $d['expires_at'], $d['status'], $id]);
     }
 
-    // ✅ Buscar token por cadena
-    public function findByToken($token) {
-        $sql = "SELECT * FROM tokens_api WHERE token = :token AND status = 'Activo'";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':token' => $token]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    // ✅ Refrescar token (actualizar automáticamente)
-    public function refreshToken($oldToken) {
-        $newToken = bin2hex(random_bytes(20));
-        $sql = "UPDATE tokens_api SET token = :newToken, created_at = NOW() WHERE token = :oldToken";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            ':newToken' => $newToken,
-            ':oldToken' => $oldToken
-        ]);
-        return ['token' => $newToken];
-    }
-
-    // ✅ Eliminar token
     public function delete($id) {
-        $sql = "DELETE FROM tokens_api WHERE id = :id";
-        $stmt = $this->conn->prepare($sql);
-        return $stmt->execute([':id' => $id]);
+        $stmt = $this->db->prepare("DELETE FROM tokens WHERE id=?");
+        return $stmt->execute([$id]);
     }
+
+    public function getById($id) {
+        $stmt = $this->db->prepare("SELECT * FROM tokens WHERE id=?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+    public function getByToken($token) {
+    $stmt = $this->db->prepare("SELECT t.*, c.name AS client_name 
+                                FROM tokens t 
+                                LEFT JOIN clients c ON c.id = t.client_id 
+                                WHERE t.token = ?");
+    $stmt->execute([$token]);
+    return $stmt->fetch();
+}
+
 }

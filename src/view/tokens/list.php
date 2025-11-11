@@ -1,89 +1,103 @@
-<div class="container mt-5">
-    <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-body">
-            <h3 class="mb-4 text-primary fw-bold">
-                <i class="fas fa-key me-2"></i>Gestión de Tokens API
-            </h3>
-
-            <a href="index.php?route=tokens/create" class="btn btn-success mb-3 rounded-pill px-4">
-                <i class="fas fa-plus-circle me-1"></i> Generar nuevo token
-            </a>
-
-            <?php if (!empty($_GET['msg'])): ?>
-                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                    <i class="fas fa-info-circle me-2"></i><?= htmlspecialchars($_GET['msg']) ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                </div>
-            <?php endif; ?>
-
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle">
-                    <thead class="table-dark text-center">
-                        <tr>
-                            <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Token</th>
-                            <th>Estado</th>
-                            <th>Fecha</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($tokens as $t): ?>
-                        <tr>
-                            <td class="text-center fw-semibold"><?= htmlspecialchars($t['id']) ?></td>
-                            <td><?= htmlspecialchars($t['client_name'] ?? 'Sin asignar') ?></td>
-                            <td class="text-truncate" style="max-width:250px;">
-                                <code class="bg-light px-2 py-1 rounded d-inline-block"><?= htmlspecialchars($t['token']) ?></code>
-                            </td>
-                            <td class="text-center">
-                                <?php if ($t['status'] === 'activo'): ?>
-                                    <span class="badge bg-success px-3 py-2">Activo</span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary px-3 py-2">Inactivo</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= htmlspecialchars($t['created_at']) ?></td>
-                            <td class="text-center">
-                                <a href="index.php?route=tokens/update&id=<?= $t['id'] ?>" class="btn btn-warning btn-sm rounded-pill me-1">
-                                    <i class="fas fa-edit"></i> Actualizar
-                                </a>
-                                <a href="index.php?route=tokens/delete&id=<?= $t['id'] ?>" 
-                                   class="btn btn-danger btn-sm rounded-pill"
-                                   onclick="return confirm('¿Eliminar token?')">
-                                    <i class="fas fa-trash-alt"></i> Eliminar
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                    <?php if (empty($tokens)): ?>
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="fas fa-exclamation-circle me-2"></i>No hay tokens registrados.
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-between mb-2">
+  <h4>Tokens API</h4>
+  <form method="post" action="index.php?route=Token:createForm" class="d-inline">
+    <button class="btn btn-success">+ Generar nuevo token</button>
+  </form>
 </div>
 
-<!-- Estilos adicionales -->
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
-    .table-hover tbody tr:hover {
-        background-color: #eef5ff;
-        transition: 0.2s;
-    }
-    .card {
-        background-color: #ffffff;
-        border-radius: 20px;
-    }
-</style>
+<table class="table datatable">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th>
+      <th>Cliente</th>
+      <th>Token</th>
+      <th>Estado</th>
+      <th>Fecha</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($tokens as $t): ?>
+      <tr>
+        <td><?= htmlspecialchars($t['id']) ?></td>
+        <td><?= htmlspecialchars($t['client_name'] ?? 'Sin asignar') ?></td>
+        <td class="text-truncate" style="max-width:250px;"><code><?= htmlspecialchars($t['token']) ?></code></td>
+        <td><?= htmlspecialchars($t['status']) ?></td>
+        <td><?= htmlspecialchars($t['created_at']) ?></td>
+        <td>
+          <!-- FORMULARIO ACTUALIZAR DIRECTO -->
+          <form method="post" action="index.php?route=Token:update" style="display:inline">
+            <input type="hidden" name="id" value="<?= $t['id'] ?>">
+            <input type="hidden" name="client_id" value="<?= $t['client_id'] ?>">
+            <input type="hidden" name="status" value="<?= $t['status'] ?>">
+            <button type="submit" class="btn btn-sm btn-warning">Regenerar Token</button>
+          </form>
 
-<!-- Íconos FontAwesome (si no los tienes ya) -->
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+          <!-- FORMULARIO ELIMINAR -->
+          <form method="post" action="index.php?route=Token:delete" style="display:inline" class="delete-form">
+            <input type="hidden" name="id" value="<?= $t['id'] ?>">
+            <button class="btn btn-sm btn-danger">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+
+<!-- ✅ Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+<?php if (!empty($_GET['msg'])): ?>
+Swal.fire({
+  title: "Éxito",
+  text: "<?= htmlspecialchars($_GET['msg']) ?>",
+  icon: "success",
+  confirmButtonColor: "#3085d6",
+  timer: 2200,
+  showConfirmButton: false,
+  draggable: true
+});
+<?php endif; ?>
+
+document.querySelectorAll('.delete-form').forEach(form => {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    Swal.fire({
+      title: "¿Eliminar token?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      draggable: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: "Eliminado",
+          text: "El token fue eliminado correctamente.",
+          icon: "success",
+          draggable: true,
+          timer: 1800,
+          showConfirmButton: false
+        });
+        setTimeout(() => { form.submit(); }, 1800);
+      }
+    });
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!sessionStorage.getItem("welcomeTokenShown")) {
+    Swal.fire({
+      title: "Bienvenido al módulo de Tokens",
+      text: "Aquí puedes gestionar y generar tokens API para tus clientes.",
+      icon: "info",
+      confirmButtonText: "Entendido",
+      draggable: true
+    });
+    sessionStorage.setItem("welcomeTokenShown", "true");
+  }
+});
+</script>

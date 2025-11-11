@@ -1,0 +1,68 @@
+/* Estilos para SweetAlert personalizado */
+.swal2-popup {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(30, 58, 138, 0.2);
+    border: 1px solid #e2e8f0;
+}
+
+.swal2-title {
+    color: #1e3a8a;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.swal2-html-container {
+    color: #64748b;
+    font-size: 1rem;
+}
+
+.swal2-confirm {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.75rem 2rem !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.swal2-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.swal2-cancel {
+    border-radius: 8px !important;
+    padding: 0.75rem 2rem !important;
+    font-weight: 500;
+}
+
+/* DataTables personalizado */
+.dataTables_wrapper {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    color: #1e3a8a;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 6px !important;
+    margin: 0 2px;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important;
+    border-color: #1e3a8a !important;
+    color: white !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #3b82f6 !important;
+    color: white !important;
+    border-color: #3b82f6 !important;
+}
